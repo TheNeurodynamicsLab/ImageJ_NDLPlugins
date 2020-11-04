@@ -1605,6 +1605,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnOpen3DRoisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpen3DRoisActionPerformed
         // TODO add your handling code here:
+        //add option for opening ROI from list
         JFileChooser fileOpener = new JFileChooser(this.defaultPath);
         fileOpener.setDialogType(JFileChooser.FILES_ONLY);
         fileOpener.setMultiSelectionEnabled(true);
