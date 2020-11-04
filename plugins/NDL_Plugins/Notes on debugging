@@ -1,0 +1,7 @@
+30 Sep 2018:
+
+Setting up environment for ImageJ plugins:
+
+Trouble faced : Not able to Debug. Break point not being able to submit. Line number not found in class file error.
+Solution : In the auto generated ide-file-Target.xml ant script: javac command should have debug= "on"
+

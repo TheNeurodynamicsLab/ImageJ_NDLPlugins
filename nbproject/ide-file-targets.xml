@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir=".." name="ImageJ-IDE">
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#compilesingle) -->
+    <target name="compile-selected-files-in-plugins">
+        <fail unless="files">Must set property 'files'</fail>
+        <!-- TODO decide on and define some value for ${build.classes.dir} -->
+        <!--mkdir dir="${build.classes.dir}"/-->
+        <javac destdir="plugins" includes="${files}" source="1.8" srcdir="plugins">
+            <classpath path="ij.jar"/>
+        </javac>
+    </target>
+</project>
