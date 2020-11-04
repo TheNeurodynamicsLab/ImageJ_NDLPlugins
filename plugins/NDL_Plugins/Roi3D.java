@@ -62,6 +62,7 @@ public class Roi3D{
     public void translateRoisXY(int newX, int newY){
         rois.forEach((i,troi)->{
             troi.setLocation(newX, newY);
+            //test here
         });
         //recenter();
     }
