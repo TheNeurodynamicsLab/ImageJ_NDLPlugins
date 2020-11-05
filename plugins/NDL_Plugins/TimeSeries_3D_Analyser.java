@@ -55,48 +55,49 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
- * There was a serious bug in the fitting routine: The array need to trimmed to eliminate zeros. In the previous versions this was not 
- * taken care of leading to not a good fit. 
- * The default path is now set using the imageplus.
- * Have introduced movement restriction during recentering. Measures the total movement in x and y components and then compares the 
- * total radial distance to ferret Diameter of the ROI (Ferest * resFac).
- * The measurement results are named using the imageplus and then saved in a data folder that gets set during the first setup. 
- * 
- * 
+ * There was a serious bug in the fitting routine: The array need to trimmed to
+ * eliminate zeros. In the previous versions this was not taken care of leading
+ * to not a good fit. The default path is now set using the imageplus. Have
+ * introduced movement restriction during recentering. Measures the total
+ * movement in x and y components and then compares the total radial distance to
+ * ferret Diameter of the ROI (Ferest * resFac). The measurement results are
+ * named using the imageplus and then saved in a data folder that gets set
+ * during the first setup.
+ *
+ *
  *
  * @author Balaji
  */
-public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnable, MouseListener/*required for add on click*/,ImageListener /*required for knowing if the active image is been closed*/ {
-    
+public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnable, MouseListener/*required for add on click*/, ImageListener /*required for knowing if the active image is been closed*/ {
+
     RoiManager Manager;               //Handle to store and access the native ROIManager Instance. 
-    ImagePlus currentImp,currSlice;   //Place holders to store and refer the currently active imageplus and the current displayed slice
-                                      //in that stack.
+    ImagePlus currentImp, currSlice;   //Place holders to store and refer the currently active imageplus and the current displayed slice
+    //in that stack.
     ImageCanvas currCanvas;           //stores the canvas of the currentImp; Used for listening mouseclick events in this canvas. Required for
-                                      //implementing add on click feature of this plugin.
+    //implementing add on click feature of this plugin.
     boolean activeImage = false;      //boolean variable to store if there is a current active image. TRUE => there is a actie image;
     //ImageStack currStk;
-    
-    ArrayList<Roi3D> Rois3D; 
+
+    ArrayList<Roi3D> Rois3D;
     DefaultListModel<String> Roi3DListModel;
-    
+
     ArrayList<Roi> Rois2D;
     DefaultListModel<String> Roi2DListModel;
-   
+
     boolean done = false;
     ImageCanvas previousCanvas;
     Thread thread;
-    
+
     //guiTranslateRoi roiTranslator = new guiTranslateRoi();
     /**
      * Settings options for autoROI properties are managed in the section bellow
      */
-    
     String autoROIPrefix;
     private String roiPrefix = "ROI";
     private String roi3DPrefix = "3D";
     private int start3DRoiNumber = 0;
     private int cur3DRoiNumber = 0;
-   // private int cur2DRoiNumber = 0;
+    // private int cur2DRoiNumber = 0;
     private int roiHeight = 17;
     private int roiWidth = 17;
     private int roiDepth = 23;
@@ -115,63 +116,64 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     private File[] selFiles;
 
     private void deconstruct3Dto2D(int selIdx) {
-        
-        if(selIdx != -1){
-            Roi [] sel2DRois = Rois3D.get(selIdx).getRoiSet();
+
+        if (selIdx != -1) {
+            Roi[] sel2DRois = Rois3D.get(selIdx).getRoiSet();
             this.btnClearAll2DActionPerformed(null);
 
-            for(Roi roi : sel2DRois){
+            for (Roi roi : sel2DRois) {
                 addNewRoi(roi);
-            }   
-        }else{
+            }
+        } else {
             btnClearAll2DActionPerformed(null);
-            for(Roi3D roi3D : Rois3D ){
-                Roi [] roi2DArray = roi3D.getRoiSet();
-                for(Roi roi2D : roi2DArray ){
+            for (Roi3D roi3D : Rois3D) {
+                Roi[] roi2DArray = roi3D.getRoiSet();
+                for (Roi roi2D : roi2DArray) {
                     addNewRoi(roi2D);
                 }
             }
-                
+
         }
     }
 
     public void recenter(ImagePlus imp, Roi tmpRoi, int z) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        Roi [] rois = new Roi[1];
+        Roi[] rois = new Roi[1];
         rois[0] = tmpRoi;
-        recenter(imp,rois,z);
+        recenter(imp, rois, z);
     }
 
     private void recenter(Roi3D roi3D) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        
-        for(Roi roi : roi3D.getRoiSet()){
+
+        for (Roi roi : roi3D.getRoiSet()) {
             recenter(this.currentImp, roi, roi.getPosition());
         }
     }
-    enum  roiType{ OVAL,RECTANGLE}; 
+
+    enum roiType {
+        OVAL, RECTANGLE
+    };
     private roiType roiShape = roiType.OVAL;
-    
-    
-    
+
     /**
      * Creates new form TimeSeries_3D_Analyser
      */
     public TimeSeries_3D_Analyser() {
-        
-        if(RoiManager.getInstance() == null){       //No previous instance of Roi Manager; User has not invoked the ROIManager tool yet. 
-             Manager = new RoiManager();            //Create a new instance of the RoiManager and obtain a handle to it.
-        }else{
-             Manager = RoiManager.getInstance();     //Roi MAnager is in use. Get the instance handle and store it for us to use.
+
+        if (RoiManager.getInstance() == null) {       //No previous instance of Roi Manager; User has not invoked the ROIManager tool yet. 
+            Manager = new RoiManager();            //Create a new instance of the RoiManager and obtain a handle to it.
+        } else {
+            Manager = RoiManager.getInstance();     //Roi MAnager is in use. Get the instance handle and store it for us to use.
         }
-       
+
         currentImp = ij.WindowManager.getCurrentImage(); //Obtain the  currently displayed image in ImageJ If multiple images are open we get the imageplus of the active window.
-                                                         //If none of the images are open, the windowmanager returns null and it is stored in currentImp. 
-        if(currentImp   != null){
+        //If none of the images are open, the windowmanager returns null and it is stored in currentImp. 
+        if (currentImp != null) {
             activeImage = true;   // The windowmanger of ImageJ returned a non-null value. There is an active image.
             defaultPath = new File(currentImp.getFileInfo().directory);
-        }else{
-            currCanvas  = null;                          // The windowmanager returned null => no images open. So no canvas and active image is set to false
+        } else {
+            currCanvas = null;                          // The windowmanager returned null => no images open. So no canvas and active image is set to false
             activeImage = false;
         }
         try {
@@ -186,23 +188,22 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
             Logger.getLogger(TimeSeries_3D_Analyser.class.getName()).log(Level.SEVERE, null, ex);
         }
         initComponents();
-        
+
         Roi2DListModel = new DefaultListModel();
         this.gui2DRoiList.setModel(Roi2DListModel);
         Roi3DListModel = new DefaultListModel();
         this.gui3DRoiList.setModel(Roi3DListModel);
-        
+
         Rois2D = new ArrayList<>();
         Rois3D = new ArrayList<>();
-        
+
         ImagePlus.addImageListener(this);
-        
+
         this.setVisible(true);
-        thread = new Thread(this,"Time Series ");
-        thread.setPriority(Math.max(thread.getPriority()-2,Thread.MIN_PRIORITY));
+        thread = new Thread(this, "Time Series ");
+        thread.setPriority(Math.max(thread.getPriority() - 2, Thread.MIN_PRIORITY));
         thread.start();
-          
-        
+
     }
 
     /**
@@ -320,6 +321,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         jSep_ChkBox_Btn = new javax.swing.JSeparator();
         btnDel3DRoi = new javax.swing.JButton();
         chkBxRectrOnAdding = new javax.swing.JCheckBox();
+        jButtonReloadSubsetRois3D = new javax.swing.JButton();
         scrlPane_3D_RoiLst = new javax.swing.JScrollPane();
         gui3DRoiList = new javax.swing.JList<>();
         scrlPane_2D_RoiLst = new javax.swing.JScrollPane();
@@ -1175,37 +1177,47 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
         chkBxRectrOnAdding.setText("Recenter while adding");
 
+        jButtonReloadSubsetRois3D.setText("Load Subset 3D Roi(s)");
+        jButtonReloadSubsetRois3D.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonReloadSubsetRois3DActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout panel_3DBtns_ChkBoxLayout = new javax.swing.GroupLayout(panel_3DBtns_ChkBox);
         panel_3DBtns_ChkBox.setLayout(panel_3DBtns_ChkBoxLayout);
         panel_3DBtns_ChkBoxLayout.setHorizontalGroup(
             panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSep_ChkBox_Btn)
+            .addComponent(jSep_ChkBox_Btn, javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(panel_3DBtns_ChkBoxLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(btnDel3DRoi, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(buttonAutoRoi, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnSetBackGround, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(make3Dbutton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(zRecenter, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnRecenter3D, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnMeasure3D, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnSetMeasurements, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnDetOverlap, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnReload3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnGenGauInt, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnSave3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnOpen3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(buttonAutoRoi, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnSetBackGround, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(make3Dbutton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(zRecenter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnRecenter3D, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnMeasure3D, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnSetMeasurements, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnDetOverlap, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnReload3DRois, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_3DBtns_ChkBoxLayout.createSequentialGroup()
                             .addGap(43, 43, 43)
                             .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                 .addComponent(add2D_rad_btn)
                                 .addComponent(add3D_rad_btn)))
-                        .addComponent(AddOnClick))
-                    .addComponent(chkBxRectrOnAdding))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(panel_3DBtns_ChkBoxLayout.createSequentialGroup()
+                            .addGap(75, 75, 75)
+                            .addComponent(AddOnClick)))
+                    .addComponent(chkBxRectrOnAdding)
+                    .addComponent(jButtonReloadSubsetRois3D, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(btnDel3DRoi, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnOpen3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnSave3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnGenGauInt, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap(34, Short.MAX_VALUE))
         );
 
         panel_3DBtns_ChkBoxLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btnDetOverlap, btnGenGauInt, btnMeasure3D, btnRecenter3D, btnReload3DRois, btnSetBackGround, btnSetMeasurements, buttonAutoRoi, make3Dbutton, zRecenter});
@@ -1239,9 +1251,11 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                 .addComponent(btnOpen3DRois)
                 .addGap(1, 1, 1)
                 .addComponent(btnDel3DRoi)
+                .addGap(4, 4, 4)
+                .addComponent(jButtonReloadSubsetRois3D)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSep_ChkBox_Btn, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSep_ChkBox_Btn, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(AddOnClick)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(add3D_rad_btn)
@@ -1295,15 +1309,15 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                         .addComponent(jLabel1)
                         .addGap(218, 218, 218)
                         .addComponent(jLabel2)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 182, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(panel_3DBtns_ChkBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(scrlPane_3D_RoiLst, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
                         .addComponent(scrlPane_2D_RoiLst, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(buttonExit, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1341,9 +1355,6 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                     .addComponent(scrlPane_3D_RoiLst)
                     .addComponent(scrlPane_2D_RoiLst)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(panel_3DBtns_ChkBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 8, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
                         .addComponent(mv2Manager)
                         .addGap(2, 2, 2)
                         .addComponent(addto3Dlist)
@@ -1358,7 +1369,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                         .addGap(1, 1, 1)
                         .addComponent(btnClearAll2D, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(roi2D_from_xy_ordinates, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(roi2D_from_xy_ordinates, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(showAllRois, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1367,7 +1378,8 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                         .addComponent(ckBxRectrForMeasurement)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(buttonExit, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(8, 8, 8)))
+                        .addGap(8, 8, 8))
+                    .addComponent(panel_3DBtns_ChkBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -1375,103 +1387,106 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     }// </editor-fold>//GEN-END:initComponents
 
     private void addto3DlistActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addto3DlistActionPerformed
-        
-      int[] Idx = this.gui2DRoiList.getSelectedIndices();
-      int Index3D = gui3DRoiList.getSelectedIndex();
-      if(Index3D > 0 && Idx.length > 0){
-        Roi3D tmpRoi = Rois3D.get(Index3D);
-        for(int id : Idx){
-          Roi roi = Rois2D.get(id);
-          tmpRoi.addRoi(roi);
+
+        int[] Idx = this.gui2DRoiList.getSelectedIndices();
+        int Index3D = gui3DRoiList.getSelectedIndex();
+        if (Index3D > 0 && Idx.length > 0) {
+            Roi3D tmpRoi = Rois3D.get(Index3D);
+            for (int id : Idx) {
+                Roi roi = Rois2D.get(id);
+                tmpRoi.addRoi(roi);
+            }
         }
-      } 
     }//GEN-LAST:event_addto3DlistActionPerformed
 
     private void recenterIn2DActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recenterIn2DActionPerformed
         // TODO add your handling code here:
-                currentImp = WindowManager.getCurrentImage();
-                int slice = currentImp.getCurrentSlice();
-                Roi [] curSliceRois = null;
-                
-                int count = 0;
-                if(Rois3D != null && Rois3D.size() > 0){
-                    curSliceRois = new Roi[Rois3D.size()];
-                    for(Roi3D tmproi : Rois3D){
-                        curSliceRois[count++] = tmproi.get2DRoi(slice);
-                    }
-                }else{
-                    
-                    if(!Rois2D.isEmpty()){
-                        curSliceRois = new Roi[Rois2D.size()];
-                        for(Roi roi : Rois2D){
-                            curSliceRois[count++] = roi;
-                        }
-                    }
+        currentImp = WindowManager.getCurrentImage();
+        int slice = currentImp.getCurrentSlice();
+        Roi[] curSliceRois = null;
+
+        int count = 0;
+        if (Rois3D != null && Rois3D.size() > 0) {
+            curSliceRois = new Roi[Rois3D.size()];
+            for (Roi3D tmproi : Rois3D) {
+                curSliceRois[count++] = tmproi.get2DRoi(slice);
+            }
+        } else {
+
+            if (!Rois2D.isEmpty()) {
+                curSliceRois = new Roi[Rois2D.size()];
+                for (Roi roi : Rois2D) {
+                    curSliceRois[count++] = roi;
                 }
-                if(curSliceRois.length != 0 )
-                    recenter(currentImp,curSliceRois,slice);
-         
+            }
+        }
+        if (curSliceRois.length != 0) {
+            recenter(currentImp, curSliceRois, slice);
+        }
+
     }//GEN-LAST:event_recenterIn2DActionPerformed
 
     private void make3DbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_make3DbuttonActionPerformed
         // TODO add your handling code here:
-        
-       int[] selIdxs = this.gui2DRoiList.getSelectedIndices();
-       if(selIdxs.length > 1 ){
-           
-            this.roi3DCount ++;
-            String roiName =  this.roi3DPrefix + "_"+ roi3DCount + "_"+this.roiPrefix ;
-            
-            Roi [] rois = new Roi[selIdxs.length];
+
+        int[] selIdxs = this.gui2DRoiList.getSelectedIndices();
+        if (selIdxs.length > 1) {
+
+            this.roi3DCount++;
+            String roiName = this.roi3DPrefix + "_" + roi3DCount + "_" + this.roiPrefix;
+
+            Roi[] rois = new Roi[selIdxs.length];
             int count = 0;
-            for(Integer Idx : selIdxs){
-                rois[count++]  = Rois2D.get(Idx);
+            for (Integer Idx : selIdxs) {
+                rois[count++] = Rois2D.get(Idx);
             }
-           //Roi [] rois = Rois2D.
-           Roi3D tmpRoi = new Roi3D(rois);
-           tmpRoi.setName(roiName);
-           this.Rois3D.add(tmpRoi);
-           this.Roi3DListModel.addElement(tmpRoi.getName());
-       }
-       
-       
-        
+            //Roi [] rois = Rois2D.
+            Roi3D tmpRoi = new Roi3D(rois);
+            tmpRoi.setName(roiName);
+            this.Rois3D.add(tmpRoi);
+            this.Roi3DListModel.addElement(tmpRoi.getName());
+        }
+
+
     }//GEN-LAST:event_make3DbuttonActionPerformed
 
     private void mv2ManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mv2ManagerActionPerformed
-        
+
         //int count  = Rois2D.size();
-        int [] selectedIndx = gui2DRoiList.getSelectedIndices();
-        if(selectedIndx.length == 0)
-           for(Roi roi : Rois2D)
-               Manager.addRoi(roi);
-        else
-            for( int roiIdx : selectedIndx){
+        int[] selectedIndx = gui2DRoiList.getSelectedIndices();
+        if (selectedIndx.length == 0) {
+            for (Roi roi : Rois2D) {
+                Manager.addRoi(roi);
+            }
+        } else {
+            for (int roiIdx : selectedIndx) {
                 Manager.addRoi(this.Rois2D.get(roiIdx));
+            }
         }
-       // this.Manager.addRoi();
-            
-            
+        // this.Manager.addRoi();
+
+
     }//GEN-LAST:event_mv2ManagerActionPerformed
 
     private void remove2Dfrom3DActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove2Dfrom3DActionPerformed
         // TODO add your handling code here:
-        int [] selectedIndx = gui2DRoiList.getSelectedIndices();
+        int[] selectedIndx = gui2DRoiList.getSelectedIndices();
         int Idx3D = gui3DRoiList.getSelectedIndex();
-        if(Idx3D != -1){
-            for( int roiIdx : selectedIndx){
-                if(!this.Rois3D.get(Idx3D).remove(Rois2D.get(roiIdx)))
-                    //display a error message;
-                this.removeRoi(Rois2D.get(roiIdx));
+        if (Idx3D != -1) {
+            for (int roiIdx : selectedIndx) {
+                if (!this.Rois3D.get(Idx3D).remove(Rois2D.get(roiIdx))) //display a error message;
+                {
+                    this.removeRoi(Rois2D.get(roiIdx));
+                }
             }
         }
     }//GEN-LAST:event_remove2Dfrom3DActionPerformed
 
     private void transferfromManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transferfromManagerActionPerformed
-        
-        Roi [] selRois = Manager.getSelectedRoisAsArray();
-        
-        for(Roi roi : selRois){
+
+        Roi[] selRois = Manager.getSelectedRoisAsArray();
+
+        for (Roi roi : selRois) {
             this.addNewRoi(roi);
         }
     }//GEN-LAST:event_transferfromManagerActionPerformed
@@ -1483,123 +1498,120 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void AddOnClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddOnClickActionPerformed
         // TODO add your handling code here:
-        if(AddOnClick.isSelected()){
+        if (AddOnClick.isSelected()) {
             add3D_rad_btn.setEnabled(true);
             add2D_rad_btn.setEnabled(true);
-        }
-        else{
+        } else {
             add3D_rad_btn.setEnabled(false);
             add2D_rad_btn.setEnabled(false);
         }
-            
+
     }//GEN-LAST:event_AddOnClickActionPerformed
 
     private void btnSave3DRoisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSave3DRoisActionPerformed
         // TODO add your handling code here:
         int Idx = this.gui3DRoiList.getSelectedIndex();
-        
-        Roi3D tmpRoi = new Roi3D(); 
-        
+
+        Roi3D tmpRoi = new Roi3D();
+
         JFileChooser FC = new JFileChooser(this.defaultPath);
         FC.setDialogType(JFileChooser.SAVE_DIALOG);
         FC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int Status = FC.showSaveDialog(null);
-       
-        if(Status == JFileChooser.APPROVE_OPTION){
+
+        if (Status == JFileChooser.APPROVE_OPTION) {
             File fileOut = FC.getSelectedFile();
-            if(Idx == -1){
-                for(Roi3D roi : Rois3D){
-                    File fOut = new File(fileOut.getName()+ File.separator +roi.getName()+".3Dr");
-                    if(fOut!=null)
+            if (Idx == -1) {
+                for (Roi3D roi : Rois3D) {
+                    File fOut = new File(fileOut.getName() + File.separator + roi.getName() + ".3Dr");
+                    if (fOut != null)
                         try {
-                            roi3DFileSaver(fileOut,roi);
-                            defaultPath = new File(fileOut.getAbsolutePath());
+                        roi3DFileSaver(fileOut, roi);
+                        defaultPath = new File(fileOut.getAbsolutePath());
                     } catch (IOException ex) {
                         Logger.getLogger(TimeSeries_3D_Analyser.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-            }else{
-                
+            } else {
+
                 try {
-                    roi3DFileSaver(fileOut,Rois3D.get(Idx));
+                    roi3DFileSaver(fileOut, Rois3D.get(Idx));
                 } catch (IOException ex) {
                     Logger.getLogger(TimeSeries_3D_Analyser.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-           // roi3DFileSaver(fileOut, tmpRoi);
+            // roi3DFileSaver(fileOut, tmpRoi);
         }
-        
-        
-        
-        
-        
+
+
     }//GEN-LAST:event_btnSave3DRoisActionPerformed
 
     private void roi3DFileSaver(File fileOut, Roi3D tmpRoi) throws IOException {
         //File fileOut = new File();
-        if(fileOut != null){
-           
+        if (fileOut != null) {
+
             ZipOutputStream fOut = null;
             ZipEntry ze = new ZipEntry("");
             try {
-                String fName  = fileOut.getPath() + File.separator+tmpRoi.getName()+".zip";
+                String fName = fileOut.getPath() + File.separator + tmpRoi.getName() + ".zip";
                 System.out.print(fName);
                 fOut = new ZipOutputStream(new FileOutputStream(fName));
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(TimeSeries_3D_Analyser.class.getName()).log(Level.SEVERE, null, ex);
             }
             Manager.reset();
-            Roi [] rois = tmpRoi.getRoiSet();
+            Roi[] rois = tmpRoi.getRoiSet();
             RoiEncoder encoder = new RoiEncoder(fOut);
-            for (Roi roi : rois){
-                ze = new ZipEntry(roi.getName()+".roi");
+            for (Roi roi : rois) {
+                ze = new ZipEntry(roi.getName() + ".roi");
                 fOut.putNextEntry(ze);
                 encoder.write(roi);
                 fOut.closeEntry();
             }
             fOut.close();
-            
+
         }
     }
-    private Roi3D roi3DFileReader(File roiFile){
+
+    private Roi3D roi3DFileReader(File roiFile) {
         Roi3D tmpRoi = new Roi3D();
         ZipInputStream zin;
-        byte [] buffer = new byte[2048];
-        ByteArrayOutputStream  dataBuff;
+        byte[] buffer = new byte[2048];
+        ByteArrayOutputStream dataBuff;
         ZipEntry ze;
         String RoiName;
         int len = 0;
-        
-        if(roiFile != null){
-            
-            try{
-                zin = new ZipInputStream(new FileInputStream (roiFile));
-                
-                while((ze = zin.getNextEntry()) != null){
+
+        if (roiFile != null) {
+
+            try {
+                zin = new ZipInputStream(new FileInputStream(roiFile));
+
+                while ((ze = zin.getNextEntry()) != null) {
                     dataBuff = new ByteArrayOutputStream();
                     RoiName = ze.getName();
-                    
-                    while((len = zin.read(buffer))> 0)
-                            dataBuff.write(buffer,0, len);
-                    
+
+                    while ((len = zin.read(buffer)) > 0) {
+                        dataBuff.write(buffer, 0, len);
+                    }
+
                     dataBuff.close();
-                    RoiDecoder decoder = new RoiDecoder(dataBuff.toByteArray(),RoiName);
+                    RoiDecoder decoder = new RoiDecoder(dataBuff.toByteArray(), RoiName);
                     Roi roi = decoder.getRoi();
                     tmpRoi.addRoi(roi);
-                    
+
                 }
                 /*ObjectInputStream Oin = new ObjectInputStream(fIn);
                 tmpRoi = (Roi3D)Oin.readObject();*/
-                
-                
-            }catch(IOException IE){
-            
-            }  
+
+            } catch (IOException IE) {
+
+            }
             String nameStr = roiFile.getName();
             int endIdx = nameStr.lastIndexOf(".");
-            tmpRoi.setName(nameStr.substring(0,endIdx));
+            tmpRoi.setName(nameStr.substring(0, endIdx));
         }
-        
+
         return tmpRoi;
     }
 
@@ -1612,28 +1624,27 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         int status = fileOpener.showOpenDialog(this);
         //File [] selFiles;
         Roi3D tmpRoi;
-        if(Rois3D.size()== 0){
-           xShiftTotal  = yShiftTotal = zShiftTotal = 0;
-           this.txt_xShiftTot.setText(""+xShiftTotal);
-           this.txt_yShiftTot.setText(""+yShiftTotal);
-           this.txt_zShiftTot.setText(""+zShiftTotal);
+        if (Rois3D.size() == 0) {
+            xShiftTotal = yShiftTotal = zShiftTotal = 0;
+            this.txt_xShiftTot.setText("" + xShiftTotal);
+            this.txt_yShiftTot.setText("" + yShiftTotal);
+            this.txt_zShiftTot.setText("" + zShiftTotal);
         }
-           
-        
-        if(status == JFileChooser.APPROVE_OPTION){
-           this.selFiles = fileOpener.getSelectedFiles();
-            
+
+        if (status == JFileChooser.APPROVE_OPTION) {
+            this.selFiles = fileOpener.getSelectedFiles();
+
             load3DRois();
         }
-        if(currentImp != null)
+        if (currentImp != null)
             this.currentImp.updateAndDraw();
     }//GEN-LAST:event_btnOpen3DRoisActionPerformed
 
     private void load3DRois() {
         Roi3D tmpRoi;
-        for(File f :selFiles){
+        for (File f : selFiles) {
             tmpRoi = roi3DFileReader(f);
-            this.Rois3D.add(tmpRoi);
+            this.Rois3D.add(tmpRoi); //add 3D ROI to arraylist Rois3D
             this.Roi3DListModel.addElement(tmpRoi.getName());
             this.roi3DCount++;
         }
@@ -1641,114 +1652,114 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void buttonAutoRoiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAutoRoiActionPerformed
         // TODO add your handling code here:
-        
+
         start3DRoiNumber = cur3DRoiNumber;
-        gui3DRoiStartNumber.setText(""+roi3DCount);
+        gui3DRoiStartNumber.setText("" + roi3DCount);
         this.gui3DroiPrefix.setText(roi3DPrefix);
         this.guiroiPrefix.setText(roiPrefix);
-        this.guiroiHeight.setText(""+this.roiHeight);
-        this.guiroiWidth.setText(""+this.roiWidth);
-        this.gui3DDepth.setText(""+this.roiDepth);
+        this.guiroiHeight.setText("" + this.roiHeight);
+        this.guiroiWidth.setText("" + this.roiWidth);
+        this.gui3DDepth.setText("" + this.roiDepth);
         this.guiShape.setSelectedIndex(this.roiShape.ordinal());
-        
+
         this.guiSettingsWindow.setVisible(true);
-        
-        
+
+
     }//GEN-LAST:event_buttonAutoRoiActionPerformed
 
     private void guiSettingsOkBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_guiSettingsOkBtnActionPerformed
         // TODO add your handling code here:
         this.roiPrefix = this.guiroiPrefix.getText();
         this.roi3DPrefix = this.gui3DroiPrefix.getText();
-        
+
         this.start3DRoiNumber = Integer.parseInt(this.gui3DRoiStartNumber.getText());
-        
+
         this.roiHeight = Integer.parseInt(guiroiHeight.getText());
         this.roiWidth = Integer.parseInt(guiroiWidth.getText());
         this.roiDepth = Integer.parseInt(gui3DDepth.getText());
-        
+
         this.guiSettingsWindow.setVisible(false);
-        
-        if(this.resizeExisitingChkBox.isSelected()){
-            
-            for(Roi3D cur3DRoi : Rois3D){
-                
+
+        if (this.resizeExisitingChkBox.isSelected()) {
+
+            for (Roi3D cur3DRoi : Rois3D) {
+
                 cur3DRoi.resizeInZ(roiDepth);
-                
+
             }
             this.deconstruct3Dto2D(gui3DRoiList.getSelectedIndex());
         }
-        
+
     }//GEN-LAST:event_guiSettingsOkBtnActionPerformed
 
     private void guiSettingsCancelBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_guiSettingsCancelBtnActionPerformed
         // TODO add your handling code here:
         this.guiSettingsWindow.setVisible(false);
     }//GEN-LAST:event_guiSettingsCancelBtnActionPerformed
-    private void recenterInZ(){
-        
+    private void recenterInZ() {
+
         //ArrayList selList;
-        int [] selListIdx;
+        int[] selListIdx;
         selListIdx = gui3DRoiList.getSelectedIndices();
         IJ.showStatus("Starting to recenter...");
-        if(selListIdx.length == 0){                             //if no 3D roi is selected then select all
+        if (selListIdx.length == 0) {                             //if no 3D roi is selected then select all
             int listSz = gui3DRoiList.getModel().getSize();
             selListIdx = new int[listSz];
-            for(int Count = 0 ; Count < listSz ; Count++){
+            for (int Count = 0; Count < listSz; Count++) {
                 selListIdx[Count] = Count;
             }
         }
         int zConvergeLimit = 1;
         int maxIterations = 20;
         currentImp = WindowManager.getCurrentImage();
-        if(currentImp == null || !currentImp.isStack()){
+        if (currentImp == null || !currentImp.isStack()) {
             IJ.showMessage("Invalid Image or stack");
             return;
         }
         int dispSlice = currentImp.getCurrentSlice();
-        
-        for(int Idx : selListIdx){
-            
+
+        for (int Idx : selListIdx) {
+
             Roi3D roi3D = Rois3D.get(Idx);
             recenter(roi3D);
             boolean converged = false;
             int iterations = 0;
-            
-            while(iterations++ < maxIterations && !converged){
+
+            while (iterations++ < maxIterations && !converged) {
                 //first find the maximum (intensity) ideal to allow the user to set anyone of the many parameters 
                 //that imagestatistics can measure to truely havea control over how to center it. For eg. one could 
                 //use integrated density instead of mean intensity.
-                
+
                 double maxIntensity = 0;
-                double curIntensity ;
+                double curIntensity;
                 int zatmaxIntensity = 0;
-                
-                for(int sliceCount = roi3D.getStartSlice() ; sliceCount < roi3D.getEndSlice() ; sliceCount++){
+
+                for (int sliceCount = roi3D.getStartSlice(); sliceCount < roi3D.getEndSlice(); sliceCount++) {
 
                     Roi sliceRoi = roi3D.get2DRoi(sliceCount);
                     //if(currentImp == null)
-                      //  currentImp = WindowManager.getCurrentImage();
-                      if(sliceRoi != null){
+                    //  currentImp = WindowManager.getCurrentImage();
+                    if (sliceRoi != null) {
                         currentImp.setSlice(sliceCount);
                         currentImp.setRoi(sliceRoi);
                         ImageStatistics stat = currentImp.getStatistics(ImageStatistics.MEAN);
                         curIntensity = stat.mean;
-                        if(maxIntensity < curIntensity){
+                        if (maxIntensity < curIntensity) {
                             maxIntensity = curIntensity;
                             zatmaxIntensity = sliceCount;
                         }
-                      }
+                    }
                 }
-                int zDiff =  zatmaxIntensity - roi3D.getCenterZ();
-            //    System.out.print("\n Iteration #: " + iterations + " maxIntensity " +maxIntensity + " z of Max : "+ zatmaxIntensity +" present diff: " +zDiff + "\n");
-                if(Math.abs(zDiff) > zConvergeLimit){
+                int zDiff = zatmaxIntensity - roi3D.getCenterZ();
+                //    System.out.print("\n Iteration #: " + iterations + " maxIntensity " +maxIntensity + " z of Max : "+ zatmaxIntensity +" present diff: " +zDiff + "\n");
+                if (Math.abs(zDiff) > zConvergeLimit) {
                     roi3D.repositionZ(zDiff);
                     recenter(roi3D);
-                }else{
+                } else {
                     converged = true;
                 }
             }
-        
+
         }
         currentImp.setSlice(dispSlice);
         currentImp.updateAndRepaintWindow();
@@ -1756,57 +1767,58 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     }
     private void btnRecenter3DActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRecenter3DActionPerformed
         // TODO add your handling code here:
-        
+
         int roiCount;
         currentImp = WindowManager.getCurrentImage();
         int maxSlice = this.currentImp.getStackSize();
         int presentSlice = currentImp.getSlice();
-        
-            for( int curSlice  = 1 ; curSlice < maxSlice ; curSlice++){
-                //currentImp.setSlice(curSlice);
-                Roi [] curSliceRois = new Roi[Rois3D.size()];
-                roiCount = 0;
-                Roi roi2D = null;
-                if(Rois3D != null && Rois3D.size() > 0){
-                    for(Roi3D tmproi : Rois3D){
-                        if((roi2D = tmproi.get2DRoi(curSlice)) != null)
-                            curSliceRois[roiCount++] = roi2D;
-                            //recenter(currentImp,roi2D,curSlice);
-                        else
+
+        for (int curSlice = 1; curSlice < maxSlice; curSlice++) {
+            //currentImp.setSlice(curSlice);
+            Roi[] curSliceRois = new Roi[Rois3D.size()];
+            roiCount = 0;
+            Roi roi2D = null;
+            if (Rois3D != null && Rois3D.size() > 0) {
+                for (Roi3D tmproi : Rois3D) {
+                    if ((roi2D = tmproi.get2DRoi(curSlice)) != null) {
+                        curSliceRois[roiCount++] = roi2D;
+                    } //recenter(currentImp,roi2D,curSlice);
+                    else
                             ;//this 3Droi does not have its 2D roi in this slice
-                    }
-                  if(roiCount>0)
-                      recenter(currentImp,curSliceRois,curSlice);  
                 }
-                
+                if (roiCount > 0) {
+                    recenter(currentImp, curSliceRois, curSlice);
+                }
             }
-           
+
+        }
+
         currentImp.setSlice(presentSlice);
     }//GEN-LAST:event_btnRecenter3DActionPerformed
 
     private void btnDel3DRoiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDel3DRoiActionPerformed
         // TODO add your handling code here:
         int idx = this.gui3DRoiList.getSelectedIndex();
-        int len  = this.gui3DRoiList.getModel().getSize();
-        if (len == 0)
+        int len = this.gui3DRoiList.getModel().getSize();
+        if (len == 0) {
             return;
-        if( idx == -1){
-            
+        }
+        if (idx == -1) {
+
             int confirm = JOptionPane.showConfirmDialog(this, "No 3D Rois is selected. Delete All ?");
-            if (confirm == JOptionPane.OK_OPTION || confirm == JOptionPane.YES_OPTION){
+            if (confirm == JOptionPane.OK_OPTION || confirm == JOptionPane.YES_OPTION) {
                 Roi3DListModel.removeAllElements();
                 Rois3D.removeAll(Rois3D);
-                 Roi2DListModel.clear();
-                 Rois2D.clear();
+                Roi2DListModel.clear();
+                Rois2D.clear();
                 roi3DCount = 0;
-                this.combinedRoi = new ShapeRoi (new Roi(0,0,0,0));
+                this.combinedRoi = new ShapeRoi(new Roi(0, 0, 0, 0));
             }
-        }else{       
-            
-            
+        } else {
+
             //if(combinedRoi != null ){
-                 //ShapeRoi sr = new ShapeRoi (Rois3D.get(idx).get2DRoi(combinedRoi.getPosition()));
-                 //this.combinedRoi.not(sr);
+            //ShapeRoi sr = new ShapeRoi (Rois3D.get(idx).get2DRoi(combinedRoi.getPosition()));
+            //this.combinedRoi.not(sr);
             //}
             this.Roi3DListModel.remove(idx);
             this.Rois3D.remove(idx);
@@ -1814,18 +1826,20 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
             Rois2D.clear();
             this.roi3DCount--;
             this.currentImp.updateAndDraw();
-           
+
         }
     }//GEN-LAST:event_btnDel3DRoiActionPerformed
 
     private void buttonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonExitActionPerformed
         // TODO add your handling code here:
-        if(currentImp != null) currentImp.setRoi((Roi)null);
+        if (currentImp != null) {
+            currentImp.setRoi((Roi) null);
+        }
         this.setVisible(false);
         this.dispose();
     }//GEN-LAST:event_buttonExitActionPerformed
 
-   
+
     private void gui3DRoiListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_gui3DRoiListValueChanged
         // TODO add your handling code here:        
         this.deconstruct3Dto2D(gui3DRoiList.getSelectedIndex());
@@ -1834,88 +1848,88 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     private void btnMeasure3DActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMeasure3DActionPerformed
         // TODO add your handling code here:
         //this.resultsDirectory = null;
-        if(this.ckBxRectrForMeasurement.isSelected())
+        if (this.ckBxRectrForMeasurement.isSelected()) {
             recenterInZ();
+        }
         ResultsTable rt = new ResultsTable();
         currentImp = WindowManager.getCurrentImage();
-        if(currentImp == null)
+        if (currentImp == null) {
             return;
-        
+        }
+
         int stkSize = currentImp.getStackSize();
-        if(stkSize == 1)
+        if (stkSize == 1) {
             return;
-        
+        }
+
         ImageStatistics stat;
-        
-        this.Peaks =  Peaks != null ? Peaks : new ResultsTable();
+
+        this.Peaks = Peaks != null ? Peaks : new ResultsTable();
         Peaks.showRowNumbers(true);
         //Peaks.show("Gaussian Peaks");
-       
+
         String currentFilename = currentImp.getTitle();
         boolean newFile = !currentFilename.equalsIgnoreCase(prevFilename);
-        
-        if(newFile){
+
+        if (newFile) {
             prevFilename = currentFilename;
             Peaks.incrementCounter();
             Peaks.addValue("FName", currentFilename);
         }
         //Peaks.incrementCounter();
-       // Peaks.addValue("FName", currentFilename);
-        
-        for(int curSlice = 1 ; curSlice < stkSize ; curSlice++){
+        // Peaks.addValue("FName", currentFilename);
+
+        for (int curSlice = 1; curSlice < stkSize; curSlice++) {
             rt.incrementCounter();
             currentImp.setSlice(curSlice);
-                       
-            for(Roi3D tmpRoi : Rois3D){
+
+            for (Roi3D tmpRoi : Rois3D) {
                 Roi roi = tmpRoi.get2DRoi(curSlice);
-                if(roi != null){
+                if (roi != null) {
                     currentImp.setRoi(roi, true);
                     stat = currentImp.getStatistics(Measurements.MEAN);
                     rt.addValue(tmpRoi.getName(), stat.mean);
-                }  
-            }           
+                }
+            }
         }
         rt.showRowNumbers(true);
-        if(radBtnshowRT.isSelected())
+        if (radBtnshowRT.isSelected()) {
             rt.show("3D Roi Mean Measurements of " + currentImp.getShortTitle());
-        
-        
-        if(true /*Gaussian Fits*/){
+        }
+
+        if (true /*Gaussian Fits*/) {
             int nCols = rt.getHeadings().length;
             ResultsTable fitRes = new ResultsTable();
             ResultsTable GaussOffsetFits = new ResultsTable();
-            
-            
+
             //ResultsTable trimmedData = new ResultsTable();
-            
-            for(int count = 0 ; count < nCols ; count++ ){
+            for (int count = 0; count < nCols; count++) {
                 String Label = rt.getColumnHeading(count);
                 double[] data = rt.getColumnAsDoubles(count);
                 double[] xData = new double[data.length];
                 double[] yData = new double[data.length];
                 int x = 0;
                 int dataCount = 0;
-                for(double y : data){
+                for (double y : data) {
                     x++;
-                    if(y != 0.0){
+                    if (y != 0.0) {
                         xData[dataCount] = x;
-                        yData[dataCount] = y;                
+                        yData[dataCount] = y;
                         //System.out.printf("%.1f\t%.1f\n",xData[dataCount],yData[dataCount]);
                         dataCount++;
                     }
                 }
                 //dataCount--;
-                xData = Arrays.copyOf(xData,dataCount);
+                xData = Arrays.copyOf(xData, dataCount);
                 yData = Arrays.copyOf(yData, dataCount);
-                CurveFitter fitter = new CurveFitter(xData,yData);
+                CurveFitter fitter = new CurveFitter(xData, yData);
                 fitter.doFit(CurveFitter.GAUSSIAN_NOOFFSET);
-                
-                double [] params = fitter.getParams();
-                double [] params2 = new double[params.length];
-                
+
+                double[] params = fitter.getParams();
+                double[] params2 = new double[params.length];
+
                 //IJ.log(fitter.getResultString() +"\n"+ " /***/ /*"+"\n" + fitter.getStatusString());
-                
-               /* fitRes.incrementCounter();
+                /* fitRes.incrementCounter();
                 fitRes.addLabel(Label);
                 int pCount = 0;
                 for(double value : params){
@@ -1929,110 +1943,113 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                 
                 /**Calculation of Initial Parameters 
                  **/
-               params2[0] = this.bgd != 0 ? bgd : 128;
-               params2[1] = params[0];
-               params2[2] = params[1];
-               params2[3]  = params[2];
-                
-                CurveFitter fitterOffset = new CurveFitter(xData,yData);
+                params2[0] = this.bgd != 0 ? bgd : 128;
+                params2[1] = params[0];
+                params2[2] = params[1];
+                params2[3] = params[2];
+
+                CurveFitter fitterOffset = new CurveFitter(xData, yData);
                 fitterOffset.setInitialParameters(params2);
-                
-                fitterOffset.doFit(CurveFitter.GAUSSIAN);               
-                
-                double [] params3 = fitterOffset.getParams();
-                
+
+                fitterOffset.doFit(CurveFitter.GAUSSIAN);
+
+                double[] params3 = fitterOffset.getParams();
+
                 boolean bl_corr = true;         //move it to a GUI
                 boolean PkFilter = true;        //move to GUI
                 double minDepth = 0.6;          //move to GUI
                 double maxDepth = 10;           //move to GUI
-                
+
                 double peak;
-                   if (PkFilter) {
-                       peak =  (bl_corr)? params3[1] - params3[0] : params3[1];
-                       if ( peak > 0 /* removes negative amplitudes */  && params3[3] > minDepth && params3[3] < maxDepth)
-                            peak = (params3[1]-params3[0]) ;
-                       else{
-                           int replacementChoice = 3 ; // 1 = max, 2 = min 3 = ave   move to GUI
-                            double sel = 0;
-                           switch (replacementChoice){
-                               case 1:
-                                   double max = 0;
-                                    for( double Curdata : yData)
-                                        max = ( Curdata > max)? Curdata : max ;
-                                    sel = max;
-                                 break;
-                                case 2:
-                                   double min = Double.MAX_VALUE;
-                                    for( double Curdata : yData)
-                                        min = ( Curdata < min )? Curdata : min ;
-                                    sel = min;
-                                    break;
-                                case 3: 
-                                    double sum = 0;
-                                    for(double Curdata : yData)
-                                       sum += Curdata;
-                                    sel = sum / yData.length;
-                                    break;
-                           }
-                           peak = sel;
-                       }
-                   }
-                   else{
-                        peak = (bl_corr)? params3[1] - params3[0] : params3[1];;
-                   }
-                
-                    Peaks.addValue(Label,peak);
-               
+                if (PkFilter) {
+                    peak = (bl_corr) ? params3[1] - params3[0] : params3[1];
+                    if (peak > 0 /* removes negative amplitudes */ && params3[3] > minDepth && params3[3] < maxDepth) {
+                        peak = (params3[1] - params3[0]);
+                    } else {
+                        int replacementChoice = 3; // 1 = max, 2 = min 3 = ave   move to GUI
+                        double sel = 0;
+                        switch (replacementChoice) {
+                            case 1:
+                                double max = 0;
+                                for (double Curdata : yData) {
+                                    max = (Curdata > max) ? Curdata : max;
+                                }
+                                sel = max;
+                                break;
+                            case 2:
+                                double min = Double.MAX_VALUE;
+                                for (double Curdata : yData) {
+                                    min = (Curdata < min) ? Curdata : min;
+                                }
+                                sel = min;
+                                break;
+                            case 3:
+                                double sum = 0;
+                                for (double Curdata : yData) {
+                                    sum += Curdata;
+                                }
+                                sel = sum / yData.length;
+                                break;
+                        }
+                        peak = sel;
+                    }
+                } else {
+                    peak = (bl_corr) ? params3[1] - params3[0] : params3[1];;
+                }
+
+                Peaks.addValue(Label, peak);
+
                 GaussOffsetFits.incrementCounter();
                 GaussOffsetFits.addLabel(Label);
                 int p2Count = 0;
-                for(double value : params3){
-                    GaussOffsetFits.addValue("P"+ p2Count++, value);
+                for (double value : params3) {
+                    GaussOffsetFits.addValue("P" + p2Count++, value);
                 }
                 p2Count = 0;
-                for(double value : params2){
-                    GaussOffsetFits.addValue("Initial P"+p2Count++,value);
+                for (double value : params2) {
+                    GaussOffsetFits.addValue("Initial P" + p2Count++, value);
                 }
-               GaussOffsetFits.addValue("Goodness of Fit",  fitterOffset.getFitGoodness());
-               GaussOffsetFits.addValue("RSquared",  fitterOffset.getRSquared());
-            
+                GaussOffsetFits.addValue("Goodness of Fit", fitterOffset.getFitGoodness());
+                GaussOffsetFits.addValue("RSquared", fitterOffset.getRSquared());
+
             }
-            
+
             String resultsTitle = "Intensity along the depth of cells in " + currentImp.getTitle().replaceAll("\\.", "_");
             //String fitResTitle = "Gaussian Fits of "+ currentImp.getTitle().replaceAll("\\.", "_");
-            String GaussOffTitle = "Gaussian Fits with Offsets of "+ currentImp.getTitle().replaceAll("\\.","_");
-           
-            if(radBtnshowRT.isSelected()){
+            String GaussOffTitle = "Gaussian Fits with Offsets of " + currentImp.getTitle().replaceAll("\\.", "_");
+
+            if (radBtnshowRT.isSelected()) {
                 //fitRes.show(fitResTitle);
                 GaussOffsetFits.show(GaussOffTitle);
                 rt.show(resultsTitle);
             }
-           
-            if(this.resultsDirectory == null){
+
+            if (this.resultsDirectory == null) {
                 JFileChooser fc = new JFileChooser();
                 fc.setDialogTitle("Choose the Directory to Save the Results");
                 fc.setCurrentDirectory(defaultPath);
-                fc.setDialogType(JFileChooser.SAVE_DIALOG); 
+                fc.setDialogType(JFileChooser.SAVE_DIALOG);
                 fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 fc.setApproveButtonText("Choose Directory");
-                
+
                 int result = fc.showSaveDialog(null);
-                
-                if(result == JFileChooser.CANCEL_OPTION)
+
+                if (result == JFileChooser.CANCEL_OPTION) {
                     resultsDirectory = defaultPath.getAbsolutePath();
-                else
+                } else {
                     resultsDirectory = fc.getSelectedFile().getAbsolutePath();
+                }
             }
-            GaussOffsetFits.save(resultsDirectory+File.separator+GaussOffTitle+".csv");
+            GaussOffsetFits.save(resultsDirectory + File.separator + GaussOffTitle + ".csv");
             //IJ.log(""+ resultsDirectory+File.separator+GaussOffTitle+".csv"+ " saved");
             //fitRes.save(resultsDirectory+File.separator+fitResTitle+".csv");
-            rt.save(resultsDirectory+File.separator+resultsTitle+".csv");
-            
+            rt.save(resultsDirectory + File.separator + resultsTitle + ".csv");
+
             Peaks.showRowNumbers(true);
             Peaks.show("Gaussian Peaks with Offset Correction");
-            
+
         }
-        
+
     }//GEN-LAST:event_btnMeasure3DActionPerformed
 
     private void gui3DDepthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gui3DDepthActionPerformed
@@ -2041,24 +2058,24 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnSetBackGroundActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSetBackGroundActionPerformed
         this.btnMeasure3D.setEnabled(true);
-        if(Rois2D.isEmpty()){
+        if (Rois2D.isEmpty()) {
             this.txt_bgdValue.setText(Double.toString(bgd));
             setBgdDialog.setVisible(true);
-        }else{
+        } else {
             ShapeRoi combination = new ShapeRoi(Rois2D.get(1));
             ShapeRoi sr;
-            for(Roi roi : Rois2D){
+            for (Roi roi : Rois2D) {
                 sr = new ShapeRoi(roi);
                 combination.or(sr);
             }
-            if(combination != null ){
+            if (combination != null) {
                 currentImp = WindowManager.getCurrentImage();
                 currentImp.setRoi(combination);
                 ImageStatistics stat = currentImp.getStatistics(Measurements.MEAN);
 
                 this.bgd = stat.mean;
             }
-        }   
+        }
     }//GEN-LAST:event_btnSetBackGroundActionPerformed
 
     private void zRecenterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zRecenterActionPerformed
@@ -2068,28 +2085,28 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnGenGauIntActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenGauIntActionPerformed
         // TODO add your handling code here:
-         this.TranslateRoi.setVisible(true);
+        this.TranslateRoi.setVisible(true);
         //this.roiTranslator.setVisible(true);
-        
+
     }//GEN-LAST:event_btnGenGauIntActionPerformed
 
     private void btnResetinMoveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetinMoveActionPerformed
-       // TODO add your handling code here:
-       this.xShiftTotal *= -1;
-       this.yShiftTotal *= -1;
-       this.zShiftTotal *= -1;
-       
-       MvRois(true,this.radBtnMvAll.isSelected() , xShiftTotal, yShiftTotal, zShiftTotal);
-       
-       xShiftTotal  = yShiftTotal = zShiftTotal = 0;
-       this.txt_xShiftTot.setText(""+xShiftTotal);
-       this.txt_yShiftTot.setText(""+yShiftTotal);
-       this.txt_zShiftTot.setText(""+zShiftTotal);
-       
-       this.imageUpdated(currentImp);
-     // this. btnRecenter3DActionPerformed(evt);
-      
-      
+        // TODO add your handling code here:
+        this.xShiftTotal *= -1;
+        this.yShiftTotal *= -1;
+        this.zShiftTotal *= -1;
+
+        MvRois(true, this.radBtnMvAll.isSelected(), xShiftTotal, yShiftTotal, zShiftTotal);
+
+        xShiftTotal = yShiftTotal = zShiftTotal = 0;
+        this.txt_xShiftTot.setText("" + xShiftTotal);
+        this.txt_yShiftTot.setText("" + yShiftTotal);
+        this.txt_zShiftTot.setText("" + zShiftTotal);
+
+        this.imageUpdated(currentImp);
+        // this. btnRecenter3DActionPerformed(evt);
+
+
     }//GEN-LAST:event_btnResetinMoveActionPerformed
 
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
@@ -2099,21 +2116,21 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnNorthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNorthActionPerformed
         // TODO add your handling code here:
-        double yStep = Double.valueOf(txt_yStepSz.getText())*(-1);
-        
-        if(this.radBtnMvAll.isSelected()){ //allRois
-            for(Roi3D roi3D : Rois3D){
+        double yStep = Double.valueOf(txt_yStepSz.getText()) * (-1);
+
+        if (this.radBtnMvAll.isSelected()) { //allRois
+            for (Roi3D roi3D : Rois3D) {
                 roi3D.translateRoisXYrel(0, yStep);
             }
-                
-        }else{
+
+        } else {
             int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1)
-                    Rois3D.get(selection).translateRoisXYrel(0, yStep);
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
-                }           
+            if (selection != -1) {
+                Rois3D.get(selection).translateRoisXYrel(0, yStep);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
             }
+        }
         yShiftTotal += yStep;
         txt_yShiftTot.setText(Integer.toString(yShiftTotal));
         this.imageUpdated(currentImp);
@@ -2122,19 +2139,19 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     private void btnSouthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSouthActionPerformed
         // TODO add your handling code here:
         double yStep = Double.valueOf(txt_yStepSz.getText());
-        if(this.radBtnMvAll.isSelected()){ //allRois
-            for(Roi3D roi3D : Rois3D){
+        if (this.radBtnMvAll.isSelected()) { //allRois
+            for (Roi3D roi3D : Rois3D) {
                 roi3D.translateRoisXYrel(0, yStep);
             }
-                
-        }else{
+
+        } else {
             int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1)
-                    Rois3D.get(selection).translateRoisXYrel(0, yStep);
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
-                }           
+            if (selection != -1) {
+                Rois3D.get(selection).translateRoisXYrel(0, yStep);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
             }
+        }
         yShiftTotal += yStep;
         txt_yShiftTot.setText(Integer.toString(yShiftTotal));
         this.imageUpdated(currentImp);
@@ -2142,20 +2159,20 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnWestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnWestActionPerformed
         // TODO add your handling code here:
-        double xStep = Double.valueOf(txt_xStepSz.getText())*(-1);
-        if(this.radBtnMvAll.isSelected()){ //allRois
+        double xStep = Double.valueOf(txt_xStepSz.getText()) * (-1);
+        if (this.radBtnMvAll.isSelected()) { //allRois
             Rois3D.forEach((roi3D) -> {
-                roi3D.translateRoisXYrel(xStep,0);
+                roi3D.translateRoisXYrel(xStep, 0);
             });
-                
-        }else{
+
+        } else {
             int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1)
-                    Rois3D.get(selection).translateRoisXYrel(xStep,0);
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
-                }           
+            if (selection != -1) {
+                Rois3D.get(selection).translateRoisXYrel(xStep, 0);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
             }
+        }
         xShiftTotal += xStep;
         txt_xShiftTot.setText(Integer.toString(xShiftTotal));
         this.imageUpdated(currentImp);
@@ -2164,19 +2181,19 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     private void btnEastActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEastActionPerformed
         // TODO add your handling code here:
         double xStep = Double.valueOf(txt_xStepSz.getText());
-        if(radBtnMvAll.isSelected()){ //allRois
-            for(Roi3D roi3D : Rois3D){
-                roi3D.translateRoisXYrel(xStep,0);
+        if (radBtnMvAll.isSelected()) { //allRois
+            for (Roi3D roi3D : Rois3D) {
+                roi3D.translateRoisXYrel(xStep, 0);
             }
-                
-        }else{
+
+        } else {
             int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1)
-                    Rois3D.get(selection).translateRoisXYrel(xStep, 0);
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
-                }           
+            if (selection != -1) {
+                Rois3D.get(selection).translateRoisXYrel(xStep, 0);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
             }
+        }
         xShiftTotal += xStep;
         txt_xShiftTot.setText(Integer.toString(xShiftTotal));
         this.imageUpdated(currentImp);
@@ -2185,18 +2202,18 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     private void btnZupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnZupActionPerformed
         // TODO add your handling code here:
         int zStep = -1 * Integer.valueOf(txt_zStepSz.getText());
-        if(radBtnMvAll.isSelected()){ //allRois
-            for(Roi3D roi3D : Rois3D){
+        if (radBtnMvAll.isSelected()) { //allRois
+            for (Roi3D roi3D : Rois3D) {
                 roi3D.repositionZ(zStep);
-            }      
-        }else{
-            int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1)
-                    Rois3D.get(selection).repositionZ(zStep);
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
-                }           
             }
+        } else {
+            int selection = this.gui3DRoiList.getSelectedIndex();
+            if (selection != -1) {
+                Rois3D.get(selection).repositionZ(zStep);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
+            }
+        }
         zShiftTotal += zStep;
         txt_zShiftTot.setText(Integer.toString(zShiftTotal));
         this.imageUpdated(currentImp);
@@ -2204,20 +2221,20 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnZdnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnZdnActionPerformed
         // TODO add your handling code here:
-        int zStep =  Integer.valueOf(txt_zStepSz.getText());
-        if(true){ //allRois
-            for(Roi3D roi3D : Rois3D){
+        int zStep = Integer.valueOf(txt_zStepSz.getText());
+        if (true) { //allRois
+            for (Roi3D roi3D : Rois3D) {
                 roi3D.repositionZ(zStep);
             }
-                
-        }else{
+
+        } else {
             int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1)
-                    Rois3D.get(selection).repositionZ(zStep);
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
-                }           
+            if (selection != -1) {
+                Rois3D.get(selection).repositionZ(zStep);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please select the 3D Roi that you want to translate or select move all rois");
             }
+        }
         zShiftTotal += zStep;
         txt_zShiftTot.setText(Integer.toString(zShiftTotal));
         this.imageUpdated(currentImp);
@@ -2225,43 +2242,43 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnMoveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMoveActionPerformed
         // TODO add your handling code here:
-        
+
         int xShift = Integer.valueOf(txt_xDist.getText());
         int yShift = Integer.valueOf(txt_yDist.getText());
         int zShift = Integer.valueOf(txt_zDist.getText());
-        
+
         boolean relative = this.radBtn_RelativeMove.isSelected();
-        boolean allRois = this.radBtnMvAll.isSelected();     
-       
-        if(relative){
+        boolean allRois = this.radBtnMvAll.isSelected();
+
+        if (relative) {
             MvRois(relative, allRois, xShift, yShift, zShift);
             xShiftTotal += xShift;
             yShiftTotal += yShift;
             zShiftTotal += zShift;
-        }else{
-            if(allRois)
-               javax.swing.JOptionPane.showMessageDialog(this,"You can not move all the ROIs to same location!"
-                       + "either move relatively or select an ROi");
-            else{
+        } else {
+            if (allRois) {
+                javax.swing.JOptionPane.showMessageDialog(this, "You can not move all the ROIs to same location!"
+                        + "either move relatively or select an ROi");
+            } else {
                 int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1){
+                if (selection != -1) {
                     Roi3D tmpRoi = Rois3D.get(selection);
                     tmpRoi.FindCenter();
-                    
+
                     int xShiftAct = tmpRoi.getCenterX() - xShift;
                     int yShiftAct = tmpRoi.getCenterY() - yShift;
                     int zShiftAct = tmpRoi.getCenterZ() - zShift;
-                    
+
                     Rois3D.get(selection).translateRoiXYrel(xShiftAct, yShiftAct, zShiftAct);
                     Rois3D.get(selection).repositionZ(zShiftAct);
-                    
+
                     xShiftTotal += xShiftAct;
                     yShiftTotal += yShiftAct;
                     zShiftTotal += zShiftAct;
                 }
             }
         }
-        
+
         this.imageUpdated(currentImp);
     }//GEN-LAST:event_btnMoveActionPerformed
 
@@ -2270,9 +2287,9 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         xShiftTotal = 0;
         yShiftTotal = 0;
         zShiftTotal = 0;
-        if(radBtnMvAll.isSelected())
+        if (radBtnMvAll.isSelected()) {
             this.gui3DRoiList.clearSelection();         //if no selection is made then the entire list is used
-        
+        }
     }//GEN-LAST:event_radBtnMvAllStateChanged
 
     private void btn_OksetBgdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_OksetBgdActionPerformed
@@ -2294,33 +2311,32 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void btnReload3DRoisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReload3DRoisActionPerformed
         // TODO add your handling code here:
-       // int confirm = JOptionPane.showConfirmDialog(this, "No 3D Rois is selected. Delete All ?");
-           // if (confirm == JOptionPane.OK_OPTION || confirm == JOptionPane.YES_OPTION){
-                Roi3DListModel.removeAllElements();
-                Rois3D.removeAll(Rois3D);
-                roi3DCount = 0;
-                this.combinedRoi = new ShapeRoi (new Roi(0,0,0,0));
-            //}
-       xShiftTotal  = yShiftTotal = zShiftTotal = 0;
-       this.txt_xShiftTot.setText(""+xShiftTotal);
-       this.txt_yShiftTot.setText(""+yShiftTotal);
-       this.txt_zShiftTot.setText(""+zShiftTotal);
-       
+        // int confirm = JOptionPane.showConfirmDialog(this, "No 3D Rois is selected. Delete All ?");
+        // if (confirm == JOptionPane.OK_OPTION || confirm == JOptionPane.YES_OPTION){
+        Roi3DListModel.removeAllElements();
+        Rois3D.removeAll(Rois3D);
+        roi3DCount = 0;
+        this.combinedRoi = new ShapeRoi(new Roi(0, 0, 0, 0));
+        //}
+        xShiftTotal = yShiftTotal = zShiftTotal = 0;
+        this.txt_xShiftTot.setText("" + xShiftTotal);
+        this.txt_yShiftTot.setText("" + yShiftTotal);
+        this.txt_zShiftTot.setText("" + zShiftTotal);
+
         this.load3DRois();
         this.imageUpdated(currentImp);
     }//GEN-LAST:event_btnReload3DRoisActionPerformed
 
     private void roi2D_from_xy_ordinatesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_roi2D_from_xy_ordinatesActionPerformed
         // TODO add your handling code here:
-        
-        File [] xy_OrdinateDatafiles = null;
-        JFileChooser  fc = new JFileChooser();
+
+        File[] xy_OrdinateDatafiles = null;
+        JFileChooser fc = new JFileChooser();
         FileReader dataReader = null;
         fc.setMultiSelectionEnabled(true);
         int returnStatus = fc.showOpenDialog(this);
-        
-        
-        if(returnStatus != JFileChooser.CANCEL_OPTION){     
+
+        if (returnStatus != JFileChooser.CANCEL_OPTION) {
             /*JDialog chooseSeparator = new JDialog(this,true);
             JLabel label = new JLabel("Please choose the separator");
             String [] separatorNames = {"Tab(\t)" ,"space ","Comma"};
@@ -2334,42 +2350,42 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
             
             
             String[] seps = {"\t"," ",","};*/
-             String [] separatorNames = {"Tab(\t)" ,"space ","Comma"};
-             String[] seps = {"\t"," ",","};
-            
-             String separator = (String) JOptionPane.showInputDialog(this,"Choose the separator", "Separator", JOptionPane.PLAIN_MESSAGE, null,separatorNames,separatorNames[0]);
-            int choiceIndex = Arrays.binarySearch(separatorNames,separator);
-             xy_OrdinateDatafiles =  fc.getSelectedFiles();
-             for (File xyFile : xy_OrdinateDatafiles){
-                if (xyFile != null){
+            String[] separatorNames = {"Tab(\t)", "space ", "Comma"};
+            String[] seps = {"\t", " ", ","};
+
+            String separator = (String) JOptionPane.showInputDialog(this, "Choose the separator", "Separator", JOptionPane.PLAIN_MESSAGE, null, separatorNames, separatorNames[0]);
+            int choiceIndex = Arrays.binarySearch(separatorNames, separator);
+            xy_OrdinateDatafiles = fc.getSelectedFiles();
+            for (File xyFile : xy_OrdinateDatafiles) {
+                if (xyFile != null) {
                     try {
-                         dataReader = new FileReader(xyFile);
+                        dataReader = new FileReader(xyFile);
                     } catch (FileNotFoundException ex) {
                         IJ.showMessage("The file" + xyFile.getName() + " is not found");
                     }
                     String line = "";
-                    float x_coord = 0, y_coord= 0;
+                    float x_coord = 0, y_coord = 0;
                     BufferedReader lineReader;
                     lineReader = new BufferedReader(dataReader);
                     try {
-                        while( (line = lineReader.readLine()) != null){
-                            String [] Data = line.split(seps[choiceIndex]);
+                        while ((line = lineReader.readLine()) != null) {
+                            String[] Data = line.split(seps[choiceIndex]);
                             x_coord = Float.parseFloat(Data[0]);
                             y_coord = Float.parseFloat(Data[1]);
-                            
-                            OvalRoi oval = new OvalRoi(x_coord,y_coord,roiWidth,roiHeight);
+
+                            OvalRoi oval = new OvalRoi(x_coord, y_coord, roiWidth, roiHeight);
                             this.addNewRoi(oval);
-                            
+
                         }
                     } catch (IOException ex) {
-                        IJ.showMessage("Error reading data from the file " + xyFile );
+                        IJ.showMessage("Error reading data from the file " + xyFile);
                     }
-                }else{
+                } else {
                     IJ.showMessage("Error reading files: File Chooser returned null");
                 }
-             }
+            }
         }
-                 
+
     }//GEN-LAST:event_roi2D_from_xy_ordinatesActionPerformed
 
     private void JTxtBox_MovResActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JTxtBox_MovResActionPerformed
@@ -2380,238 +2396,304 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         // TODO add your handling code here:
     }//GEN-LAST:event_resizeExisitingChkBoxActionPerformed
 
+    private void jButtonReloadSubsetRois3DActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonReloadSubsetRois3DActionPerformed
+        // TODO add your handling code here:
+        //Open ROIs based on a list of ROI names - ROI name corresponds to file names
+        //Steps:
+        //1. Open csv file with list of ROI names.
+        //2. Read csv file and save list of ROI names into an array.
+        //3. Open directory of where 3DROI files are saved.
+        //4. Open each ROI using directory information and ROI name from array made in 2.
+        //5. Use load3DRois command
+        //6. Done?
+//        File file = new File("C:\\demo\\demofile.txt"); //file open command
+
+        //csv file with roi list selection
+        JFileChooser jc = new JFileChooser();
+//        jc.setDialogType(JFileChooser.FILES_ONLY);
+        jc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        jc.setMultiSelectionEnabled(false);
+        jc.showOpenDialog(this);
+        File listSubset3DRois = jc.getSelectedFile();
+//        System.out.println("CSV file: " + listSubset3DRois.getName());
+        //read csv file into an arraylist
+        ArrayList<String> list3DRois = new ArrayList<>();
+        try {
+            //write code to read csv file into arraylist
+            FileReader fr = new FileReader(listSubset3DRois);
+            try {
+                String strBuff = "";
+                int a = 0;
+                while((a = fr.read()) != -1){
+                    if(a != '\n'){
+                        strBuff += (char) a;
+                    } else{
+                        //System.out.println("strBuff roi name: " + strBuff);
+                        list3DRois.add(strBuff);
+                        strBuff = "";
+                    }
+                }
+//                System.out.println("read file attempt done");
+            } catch (IOException ex) {
+                Logger.getLogger(TimeSeries_3D_Analyser.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("Error at fr.read() level");
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(TimeSeries_3D_Analyser.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Error at fr new level");
+        }
+
+        //directory selection
+        jc = new JFileChooser();
+        jc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jc.showOpenDialog(this);
+        File dir3DRois = jc.getSelectedFile();
+        System.out.println("Directory absol path: " + dir3DRois.getAbsolutePath());
+        //loop over arraylist
+        selFiles = new File[list3DRois.size()];
+        File file;
+        System.out.println("3Droi list size: " + list3DRois.size());
+        for (int i = 0; i < list3DRois.size(); i++) {
+            String fileName = dir3DRois.getAbsolutePath() + File.separator + list3DRois.get(i);
+            //System.out.println(fileName);
+            file = new File(fileName); //check if .zip extension is correct
+            selFiles[i] = file;
+            }
+        //clear all 3D roi lists
+        Roi3DListModel.removeAllElements();
+        Rois3D.removeAll(Rois3D);
+        Roi2DListModel.clear();
+        Rois2D.clear();
+        roi3DCount = 0;
+        this.combinedRoi = new ShapeRoi(new Roi(0, 0, 0, 0));
+        //call load3DRois method to load required subset of 3D ROIs
+        this.load3DRois();
+    }//GEN-LAST:event_jButtonReloadSubsetRois3DActionPerformed
+
     private void MvRois(boolean relative, boolean allRois, int xShift, int yShift, int zShift) throws HeadlessException {
-        if(relative){
-            
-            if(allRois){
+        if (relative) {
+
+            if (allRois) {
                 //relative and allrois
-                for(Roi3D roi3D : Rois3D){
-                    roi3D.translateRoisXYrel(xShift,yShift);
+                for (Roi3D roi3D : Rois3D) {
+                    roi3D.translateRoisXYrel(xShift, yShift);
                     roi3D.repositionZ(zShift);
                 }
-            }
-            else{
+            } else {
                 //relative and move only the selection
                 //code for shifting the selected 3dRoi
                 int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection != -1){
+                if (selection != -1) {
                     Roi3D tRoi3D = Rois3D.get(selection);
                     tRoi3D.translateRoisXYrel(xShift, yShift);
                     tRoi3D.repositionZ(zShift);
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(this, "No Selection is made. Select one of the ROi3D");
+
                 }
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this,"No Selection is made. Select one of the ROi3D");
-                    
-                }
-                
+
             }
-            
-        }
-        else{                   //it is absolute
-            if(allRois){           //allRois
-                for(Roi3D roi3D : Rois3D){
+
+        } else {                   //it is absolute
+            if (allRois) {           //allRois
+                for (Roi3D roi3D : Rois3D) {
                     roi3D.translateRoisXY(xShift, yShift);
                     roi3D.FindCenter();
-                    zShift =- roi3D.getCenterZ();
+                    zShift = -roi3D.getCenterZ();
                     roi3D.repositionZ(zShift);
                 }
-            }
-            else{
+            } else {
                 //code for shifting the selected 3dRoi
                 int selection = this.gui3DRoiList.getSelectedIndex();
-                if(selection!= -1){
+                if (selection != -1) {
                     Roi3D tRoi3D = Rois3D.get(selection);
                     tRoi3D.translateRoisXY(xShift, yShift);
                     tRoi3D.FindCenter();
                     zShift -= tRoi3D.getCenterZ();
                     tRoi3D.repositionZ(zShift);
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(this, "No Selection is made. Select one of the ROi3D");
+
                 }
-                else{
-                    javax.swing.JOptionPane.showMessageDialog(this,"No Selection is made. Select one of the ROi3D");
-                    
-                }
-                
+
             }
-            
+
         }
     }
 
-    public void recenter(ImagePlus imp, Roi[] rois, int sliceNo){
+    public void recenter(ImagePlus imp, Roi[] rois, int sliceNo) {
         recentering = true; //started
-        if(imp != null && rois != null && sliceNo > 0){
-            
+        if (imp != null && rois != null && sliceNo > 0) {
+
             //imp.lock();
             imp.setSlice(sliceNo);
             imp.updateAndDraw();
-           // System.out.println("The slice number is:"+ sliceNo);
-                        
+            // System.out.println("The slice number is:"+ sliceNo);
+
             /* variables that need user inputs            */
             boolean maxMov = true;
-            double movResFactor = Double.parseDouble( JTxtBox_MovRes.getText());//gui
+            double movResFactor = Double.parseDouble(JTxtBox_MovRes.getText());//gui
             double totxMov;
             double totyMov;
             double movThld;
-            
-            double calReq = Double.parseDouble( JTextBox_CalRes.getText());//0.5;           //gui
-            int MaxIteration =   Integer.parseInt( JTxtBox_MaxIter.getText()) ;     //gui
-            double CLimit =    Double.parseDouble( JTxtBox_CLimit.getText())  ;    //gui
-            
+
+            double calReq = Double.parseDouble(JTextBox_CalRes.getText());//0.5;           //gui
+            int MaxIteration = Integer.parseInt(JTxtBox_MaxIter.getText());     //gui
+            double CLimit = Double.parseDouble(JTxtBox_CLimit.getText());    //gui
+
             ImageStatistics stat;//new ImageStatistics();
             Calibration calib = imp.getCalibration();
             double xScale = calib.pixelWidth;
             double yScale = calib.pixelHeight;
             boolean Converge;
-            
+
             int New_x;
             int New_y;
-            
-            double xMovement, yMovement,distMov;
+
+            double xMovement, yMovement, distMov;
             java.awt.Rectangle Boundary;
-                    
-            for(Roi orgRoi : rois){
+
+            for (Roi orgRoi : rois) {
                 distMov = 0;
                 totxMov = 0;
                 totyMov = 0;
-                if(orgRoi == null)
+                if (orgRoi == null) {
                     break;
-                else{
-                    movThld = orgRoi.getFeretsDiameter() * movResFactor ;
+                } else {
+                    movThld = orgRoi.getFeretsDiameter() * movResFactor;
                     Boundary = orgRoi.getBounds();
-                    double scaledWidth = orgRoi.getFloatWidth()*calReq;
-                    double scaledHeight = orgRoi.getFloatHeight()*calReq;
-                    Roi CurRoi = new Roi((Boundary.getCenterX()-(scaledWidth/2)),(Boundary.getCenterY()-(scaledHeight/2)),roiWidth*calReq,roiHeight*calReq);
-                                    //Using a rectangle Roi for estimating the center
-                  
-                    Converge = false;               
-                    imp.setRoi(CurRoi,true);
+                    double scaledWidth = orgRoi.getFloatWidth() * calReq;
+                    double scaledHeight = orgRoi.getFloatHeight() * calReq;
+                    Roi CurRoi = new Roi((Boundary.getCenterX() - (scaledWidth / 2)), (Boundary.getCenterY() - (scaledHeight / 2)), roiWidth * calReq, roiHeight * calReq);
+                    //Using a rectangle Roi for estimating the center
+
+                    Converge = false;
+                    imp.setRoi(CurRoi, true);
                     //imp.updateAndDraw();
                     stat = imp.getStatistics(Measurements.CENTER_OF_MASS + Measurements.CENTROID);
 
-                    for(int Iteration = 1 ; Iteration <= MaxIteration  && !Converge  ; Iteration++){
+                    for (int Iteration = 1; Iteration <= MaxIteration && !Converge; Iteration++) {
 
                         stat = imp.getStatistics(Measurements.CENTER_OF_MASS + Measurements.CENTROID); //Calculate center of Mass and Centroid; 
-                       // New_x = (int) Math.round(((stat.xCenterOfMass/xScale) - (scaledWidth/2.0)));
+                        // New_x = (int) Math.round(((stat.xCenterOfMass/xScale) - (scaledWidth/2.0)));
                         //New_y = (int) Math.round(((stat.yCenterOfMass/yScale) - (scaledHeight/2.0)));
-      /*for debugging purposes*/ //System.out.printf("Recentering Started: Iteration %d Center of Mass (x,y):(%.2f,%.2f) and Centroid (x,y) is (%.1f,%.1f)\t  Fractional movement so far %f\n",Iteration,stat.xCenterOfMass,stat.yCenterOfMass, stat.xCentroid,stat.yCentroid, (distMov/movThld));
+                        /*for debugging purposes*/ //System.out.printf("Recentering Started: Iteration %d Center of Mass (x,y):(%.2f,%.2f) and Centroid (x,y) is (%.1f,%.1f)\t  Fractional movement so far %f\n",Iteration,stat.xCenterOfMass,stat.yCenterOfMass, stat.xCentroid,stat.yCentroid, (distMov/movThld));
                         // Calculate movements
-                        xMovement =(stat.xCentroid - stat.xCenterOfMass)/xScale;
-                        yMovement = (stat.yCentroid - stat.yCenterOfMass)/yScale;
-                        if( Math.abs(xMovement) < 1 && xMovement != 0 && yMovement != 0 && Math.abs(yMovement) < 1){ //Now search nearby;
-                            if(Math.abs(xMovement) > Math.abs(yMovement)){
-                                New_x = (xMovement > 0) ? (int)Math.round(stat.xCentroid/xScale - (scaledWidth/2.0) - 1) : (int)Math.round(stat.xCentroid/xScale - (scaledWidth/2.0) + 1);
-                                New_y = (int) Math.round(stat.yCentroid/yScale - (scaledHeight/2.0));
+                        xMovement = (stat.xCentroid - stat.xCenterOfMass) / xScale;
+                        yMovement = (stat.yCentroid - stat.yCenterOfMass) / yScale;
+                        if (Math.abs(xMovement) < 1 && xMovement != 0 && yMovement != 0 && Math.abs(yMovement) < 1) { //Now search nearby;
+                            if (Math.abs(xMovement) > Math.abs(yMovement)) {
+                                New_x = (xMovement > 0) ? (int) Math.round(stat.xCentroid / xScale - (scaledWidth / 2.0) - 1) : (int) Math.round(stat.xCentroid / xScale - (scaledWidth / 2.0) + 1);
+                                New_y = (int) Math.round(stat.yCentroid / yScale - (scaledHeight / 2.0));
+                            } else {
+                                New_y = (yMovement > 0) ? (int) Math.round(stat.yCentroid / yScale - (scaledHeight / 2.0) - 1) : (int) Math.round(stat.yCentroid / yScale - (scaledHeight / 2.0) + 1);
+                                New_x = (int) Math.round(stat.xCentroid / xScale - (scaledWidth / 2.0));
                             }
-                            else{
-                                New_y = (yMovement > 0) ? (int)Math.round(stat.yCentroid/yScale -(scaledHeight/2.0)- 1) : (int)Math.round(stat.yCentroid/yScale - (scaledHeight/2.0)+ 1);
-                                New_x = (int) Math.round(stat.xCentroid/xScale -(scaledWidth/2.0));
-                            }
-                        }
-                        else{
-                            New_x = (int)Math.round (((stat.xCenterOfMass/xScale) - (scaledWidth/2.0)));
-                            New_y = (int)Math.round (((stat.yCenterOfMass/yScale) - (scaledHeight/2.0)));
+                        } else {
+                            New_x = (int) Math.round(((stat.xCenterOfMass / xScale) - (scaledWidth / 2.0)));
+                            New_y = (int) Math.round(((stat.yCenterOfMass / yScale) - (scaledHeight / 2.0)));
 
                         }
-                        Converge = ( Math.abs(xMovement) < CLimit && Math.abs(yMovement) < CLimit) ;
-                        if(maxMov && !Converge){
+                        Converge = (Math.abs(xMovement) < CLimit && Math.abs(yMovement) < CLimit);
+                        if (maxMov && !Converge) {
                             totxMov += xMovement;
                             totyMov += yMovement;
-                            distMov = sqrt(totxMov*totxMov + totyMov*totyMov);
-                            if(distMov >= movThld){
+                            distMov = sqrt(totxMov * totxMov + totyMov * totyMov);
+                            if (distMov >= movThld) {
                                 New_x -= totxMov;
                                 New_y -= totyMov;
                                 Converge = true;
-                                
-                                IJ.log("\nTotal Movement  of " + orgRoi.getName()+" = " + distMov + "Fraction:" + distMov/movThld);
+
+                                IJ.log("\nTotal Movement  of " + orgRoi.getName() + " = " + distMov + "Fraction:" + distMov / movThld);
                                 IJ.log("\n" + orgRoi.getName() + " moved a lot so reseting");
                             }
                         }
-                        CurRoi.setLocation(New_x ,New_y);
-                        imp.setRoi(CurRoi,true);
+                        CurRoi.setLocation(New_x, New_y);
+                        imp.setRoi(CurRoi, true);
                         //imp.updateAndDraw();
                     }
-                    orgRoi.setLocation((stat.xCentroid - (roiWidth/2.0)), (stat.yCentroid - (roiHeight/2.0)));
+                    orgRoi.setLocation((stat.xCentroid - (roiWidth / 2.0)), (stat.yCentroid - (roiHeight / 2.0)));
                     //IJ.log("\nTotal Movement  of " + orgRoi.getName()+" = " + distMov);
                     //imp.setRoi(orgRoi);
-                    
+
                 }
             }
         }
-        
-      recentering = false;  //done
+
+        recentering = false;  //done
     }
+
     @Override
     public void mouseClicked(MouseEvent me) {
-       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        
-       if (AddOnClick.isSelected()){
-                int x = me.getX();
-                int y = me.getY();
-                
-                //int Width = 10;             //Need to be set in AutoRoi Properties
-                //int Height = 10;            //Need to be set in AutoRoi Properties
-                
-                ImagePlus imp = WindowManager.getCurrentImage();
-                if (imp != null){
-                    ImageWindow Win = imp.getWindow();
-                    ImageCanvas canvas = Win.getCanvas();
-                    
-                    int offscreenX = canvas.offScreenX(x);
-                    int offscreenY = canvas.offScreenY(y);
-                    int Start_x = offscreenX - (int)(roiWidth/2);
-                    int Start_y = offscreenY - (int)(roiHeight/2);
-                    
-                    int z = imp.getSlice();
-                    
-                   
-                    if(add2D_rad_btn.isSelected()){
-                        Roi tmpRoi = new OvalRoi(Start_x,Start_y,roiWidth,roiHeight);
-                        tmpRoi.setName(this.roiPrefix+"_"+Start_x + "_"+Start_y+"_"+z);
-                        tmpRoi.setLocation(Start_x,Start_y);
-                        tmpRoi.setPosition(z);
-                        imp.setRoi(tmpRoi, true);
-                        Manager.addRoi(tmpRoi);
-                        //if(this.chkBxRectrOnAdding.isSelected())
-                          //                   recenter(imp, tmpRoi,z);
-                        //this.addNewRoi(tmpRoi);
-                    }
-                    if(add3D_rad_btn.isSelected()){
-                        
-                        int endPosition = z +roiDepth/2;
-                        int startPosition = z > roiDepth/2 ? z -roiDepth/2 : 0 ;
-                        Roi3D tmp3DRoi = new Roi3D();
-                       
-                        tmp3DRoi.setName(roi3DPrefix+"_"+ roi3DCount++ + roiPrefix);
-                        tmp3DRoi.setCenterZ(z);
-                        tmp3DRoi.setnSlices(endPosition - startPosition);
-                        
-                        Roi [] rois = new Roi[roiDepth];     
-                        for(int curPos = startPosition,count = 0 ; curPos < endPosition ; curPos++,count++){
-                             Roi tmpRoi = new OvalRoi(Start_x,Start_y,roiWidth,roiHeight);
-                             tmpRoi.setName(tmp3DRoi.getName()+"_"+Start_x + "_"+Start_y+"_"+ curPos);
-                             tmpRoi.setLocation(Start_x,Start_y);
-                             tmpRoi.setPosition(curPos);
-                             imp.setRoi(tmpRoi, true);
-                             if(this.chkBxRectrOnAdding.isSelected())
-                                             recenter(imp, tmpRoi,curPos);
-                             //Manager.addRoi(tmpRoi);
-                             this.addNewRoi(tmpRoi);
-                             rois[count] = tmpRoi;    
-                        }
-                        tmp3DRoi.addRoiSet(rois);
-                        Rois3D.add(tmp3DRoi);
-                        this.Roi3DListModel.addElement(tmp3DRoi.getName());
-                        imp.setSlice(z);
+        // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        if (AddOnClick.isSelected()) {
+            int x = me.getX();
+            int y = me.getY();
+
+            //int Width = 10;             //Need to be set in AutoRoi Properties
+            //int Height = 10;            //Need to be set in AutoRoi Properties
+            ImagePlus imp = WindowManager.getCurrentImage();
+            if (imp != null) {
+                ImageWindow Win = imp.getWindow();
+                ImageCanvas canvas = Win.getCanvas();
+
+                int offscreenX = canvas.offScreenX(x);
+                int offscreenY = canvas.offScreenY(y);
+                int Start_x = offscreenX - (int) (roiWidth / 2);
+                int Start_y = offscreenY - (int) (roiHeight / 2);
+
+                int z = imp.getSlice();
+
+                if (add2D_rad_btn.isSelected()) {
+                    Roi tmpRoi = new OvalRoi(Start_x, Start_y, roiWidth, roiHeight);
+                    tmpRoi.setName(this.roiPrefix + "_" + Start_x + "_" + Start_y + "_" + z);
+                    tmpRoi.setLocation(Start_x, Start_y);
+                    tmpRoi.setPosition(z);
+                    imp.setRoi(tmpRoi, true);
+                    Manager.addRoi(tmpRoi);
+                    //if(this.chkBxRectrOnAdding.isSelected())
+                    //                   recenter(imp, tmpRoi,z);
                     //this.addNewRoi(tmpRoi);
-                    }
                 }
+                if (add3D_rad_btn.isSelected()) {
+
+                    int endPosition = z + roiDepth / 2;
+                    int startPosition = z > roiDepth / 2 ? z - roiDepth / 2 : 0;
+                    Roi3D tmp3DRoi = new Roi3D();
+
+                    tmp3DRoi.setName(roi3DPrefix + "_" + roi3DCount++ + roiPrefix);
+                    tmp3DRoi.setCenterZ(z);
+                    tmp3DRoi.setnSlices(endPosition - startPosition);
+
+                    Roi[] rois = new Roi[roiDepth];
+                    for (int curPos = startPosition, count = 0; curPos < endPosition; curPos++, count++) {
+                        Roi tmpRoi = new OvalRoi(Start_x, Start_y, roiWidth, roiHeight);
+                        tmpRoi.setName(tmp3DRoi.getName() + "_" + Start_x + "_" + Start_y + "_" + curPos);
+                        tmpRoi.setLocation(Start_x, Start_y);
+                        tmpRoi.setPosition(curPos);
+                        imp.setRoi(tmpRoi, true);
+                        if (this.chkBxRectrOnAdding.isSelected()) {
+                            recenter(imp, tmpRoi, curPos);
+                        }
+                        //Manager.addRoi(tmpRoi);
+                        this.addNewRoi(tmpRoi);
+                        rois[count] = tmpRoi;
+                    }
+                    tmp3DRoi.addRoiSet(rois);
+                    Rois3D.add(tmp3DRoi);
+                    this.Roi3DListModel.addElement(tmp3DRoi.getName());
+                    imp.setSlice(z);
+                    //this.addNewRoi(tmpRoi);
+                }
+            }
         }
-    
-    
+
     }
 
     @Override
     public void mousePressed(MouseEvent me) {
-       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -2621,20 +2703,20 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     @Override
     public void mouseEntered(MouseEvent me) {
-       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void mouseExited(MouseEvent me) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     @Override
     public void imageOpened(ImagePlus imp) {
-        currentImp = WindowManager.getCurrentImage()!= null ?  WindowManager.getCurrentImage():null;      
-        this.currCanvas = (activeImage = (currentImp != null)) ? currentImp.getCanvas(): null;
-        defaultPath =  new File(currentImp.getFileInfo().directory);
-        if(showAllRois.isSelected()&& combinedRoi != null){
+        currentImp = WindowManager.getCurrentImage() != null ? WindowManager.getCurrentImage() : null;
+        this.currCanvas = (activeImage = (currentImp != null)) ? currentImp.getCanvas() : null;
+        defaultPath = new File(currentImp.getFileInfo().directory);
+        if (showAllRois.isSelected() && combinedRoi != null) {
             currentImp.setRoi(combinedRoi);
         }
         //combinedRoi = new ShapeRoi(new Roi(0,0,0,0));
@@ -2643,8 +2725,8 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     @Override
     public void imageClosed(ImagePlus imp) {
-        currentImp = WindowManager.getCurrentImage()!= null ?  WindowManager.getCurrentImage():null;      
-        this.currCanvas = (activeImage = (currentImp != null)) ? currentImp.getCanvas(): null;
+        currentImp = WindowManager.getCurrentImage() != null ? WindowManager.getCurrentImage() : null;
+        this.currCanvas = (activeImage = (currentImp != null)) ? currentImp.getCanvas() : null;
         combinedRoi = null;
         //combinedRoi = new ShapeRoi(new Roi(0,0,0,0));
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -2654,38 +2736,37 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     public void imageUpdated(ImagePlus imp) {
         //boolean showROis = true;
         //throw new UnsupportedOperati onException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        if(this.showAllRois.isSelected() && ! recentering){                     //recentering will be turned on and off depending on if the recentering is in progress
+        if (this.showAllRois.isSelected() && !recentering) {                     //recentering will be turned on and off depending on if the recentering is in progress
             Roi roi;
             int curSlice;
             int selIdx;
-            
-            combinedRoi = new ShapeRoi(new OvalRoi(0,0,0,0));
-            if(currentImp != null){
-                curSlice =  currentImp.getSlice();
+
+            combinedRoi = new ShapeRoi(new OvalRoi(0, 0, 0, 0));
+            if (currentImp != null) {
+                curSlice = currentImp.getSlice();
                 selIdx = this.gui3DRoiList.getSelectedIndex();
-                if(selIdx == -1){
-                    for(Roi3D roi3D : Rois3D){
+                if (selIdx == -1) {
+                    for (Roi3D roi3D : Rois3D) {
                         //ShapeRoi tmpSR = ((roi = roi3D.get2DRoi(curSlice)) != null) ? new ShapeRoi(roi):null;
                         roi = roi3D.get2DRoi(curSlice);
-                        if(roi != null){
+                        if (roi != null) {
                             ShapeRoi tmpSR = new ShapeRoi(roi);
                             combinedRoi.or(tmpSR);
                         }
                     }
                     currentImp.setRoi(combinedRoi);
-                }else{
+                } else {
                     roi = Rois3D.get(selIdx).get2DRoi(currentImp.getSlice());
-                    if (roi != null) 
+                    if (roi != null) {
                         combinedRoi = new ShapeRoi(roi);
+                    }
                     currentImp.setRoi(combinedRoi);
                 }
             }
         }
-        
+
     }
 
-   
-    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox AddOnClick;
@@ -2740,6 +2821,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     private javax.swing.JTextField guiroiHeight;
     private javax.swing.JTextField guiroiPrefix;
     private javax.swing.JTextField guiroiWidth;
+    private javax.swing.JButton jButtonReloadSubsetRois3D;
     private javax.swing.JCheckBox jCheckBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -2807,50 +2889,55 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
 
     private void addNewRoi(Roi roi) {
         //throw new UnsupportedOperationException("Not supported yet.");// To change body of generated methods, choose Tools | Templates.
-        if(roi != null){
+        if (roi != null) {
             this.Roi2DListModel.addElement(roi.getName());                  // Add the new roi to the list model which contains the data that is being displyed 
-                                                                            // in the guiRoi2D List. This only adds the name of the roi
+            // in the guiRoi2D List. This only adds the name of the roi
             this.Rois2D.add(roi);                                           // Ensure that the roi is added to the arraylist of the 2DRois
-        //this.gui2DRoiList.setModel(Roi2DListModel);                       // Not sure if we need this but just in case update the model after addition
-        }else{
-            
-        }  
+            //this.gui2DRoiList.setModel(Roi2DListModel);                       // Not sure if we need this but just in case update the model after addition
+        } else {
+
+        }
     }
-    private void removeRoi(Roi roi){
-        
+
+    private void removeRoi(Roi roi) {
+
         boolean status = this.Rois2D.remove(roi);
-        if(status == false)
-            ;   //Throw error message 
-        else
+        if (status == false)
+            ; //Throw error message 
+        else {
             this.Roi2DListModel.removeElement(roi.getName());
-        
+        }
+
         this.gui2DRoiList.setModel(Roi2DListModel);
     }
 
     @Override
     public void run() {
-        
-		while (!done) {
-			try {Thread.sleep(500);}
-			catch(InterruptedException e) {}
-			ImagePlus imp = WindowManager.getCurrentImage();
-			if (imp != null){
-				ImageCanvas canvas = imp.getCanvas();
-                          	if (canvas != previousCanvas){
-					if(previousCanvas != null)
-                                               previousCanvas.removeMouseListener(this);
-					canvas.addMouseListener(this);
-					previousCanvas = canvas;
-				}
-			}
-                        else{
-                            if(previousCanvas != null)
-                                previousCanvas.removeMouseListener(this);
-                            previousCanvas = null;
-                        }
-                           
-		}
-	}
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    
+
+        while (!done) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+            }
+            ImagePlus imp = WindowManager.getCurrentImage();
+            if (imp != null) {
+                ImageCanvas canvas = imp.getCanvas();
+                if (canvas != previousCanvas) {
+                    if (previousCanvas != null) {
+                        previousCanvas.removeMouseListener(this);
+                    }
+                    canvas.addMouseListener(this);
+                    previousCanvas = canvas;
+                }
+            } else {
+                if (previousCanvas != null) {
+                    previousCanvas.removeMouseListener(this);
+                }
+                previousCanvas = null;
+            }
+
+        }
+    }
+    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
 }
