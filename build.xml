@@ -6,7 +6,7 @@
     <!-- First, ensure the build directory exists. -->
     <mkdir dir="build" />
     <!-- Build everything; add debug="on" to debug -->
-    <javac srcdir="./ij" destdir="build" optimize="on" source="1.8" target="1.8" debug="on" includeantruntime="false" encoding="utf-8">
+    <javac srcdir="./ij" destdir="build" optimize="on" source="1.8" target="1.8" debug="true" debuglevel="source,vars,lines" includeantruntime="false" encoding="utf-8">
     </javac>
   </target>
   
@@ -32,14 +32,14 @@
 
   <target name="run" depends="build" description="Build and run ImageJ.">
     <copy file="ij.jar" toDir=".." />
-    <java maxmemory="640m" jar="ij.jar" fork="yes" />
+    <java  maxmemory="640m" jar="ij.jar" fork="yes" />
   </target>
     
 
   <target name="run2" depends="build" description="Build and run ImageJ.">
     <!-- Run in ImageJ directory -->
     <copy file="ij.jar" toDir=".." />
-    <java maxmemory="640m" dir=".." jar="ij.jar" fork="yes" />
+    <java  maxmemory="640m" dir=".." jar="ij.jar" fork="yes" />
   </target>
 
   <target name="zip" depends="clean" description="Build zrc.zip.">

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir=".." name="ImageJ-IDE">
+    <property file="nbproject/nbjdk.properties"/>
+    <property location="${netbeans.user}/build.properties" name="user.properties.file"/>
+    <property file="${user.properties.file}"/>
+    <import file="jdk.xml"/>
+    <import file="../build.xml"/>
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#debugj2se) -->
+    <target depends="-jdk-init,build" description="Build and run ImageJ." name="debug-nb">
+        <copy file="ij.jar" toDir=".."/>
+        <nbjpdastart addressproperty="jpda.address" name="ImageJ" transport="dt_socket"/>
+        <java fork="yes" jar="ij.jar" maxmemory="640m">
+            <jvmarg value="-agentlib:jdwp=transport=dt_socket,address=${jpda.address}"/>
+        </java>
+    </target>
+</project>

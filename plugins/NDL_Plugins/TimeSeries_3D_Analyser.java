@@ -21,6 +21,7 @@ import ij.measure.CurveFitter;
 import ij.measure.Measurements;
 import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
+import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import java.awt.HeadlessException;
 import java.awt.event.ActionListener;
@@ -322,6 +323,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         btnDel3DRoi = new javax.swing.JButton();
         chkBxRectrOnAdding = new javax.swing.JCheckBox();
         jButtonReloadSubsetRois3D = new javax.swing.JButton();
+        btnClearOutside = new javax.swing.JButton();
         scrlPane_3D_RoiLst = new javax.swing.JScrollPane();
         gui3DRoiList = new javax.swing.JList<>();
         scrlPane_2D_RoiLst = new javax.swing.JScrollPane();
@@ -1184,40 +1186,51 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
             }
         });
 
+        btnClearOutside.setText("Clear Outside ROIs");
+        btnClearOutside.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClearOutsideActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout panel_3DBtns_ChkBoxLayout = new javax.swing.GroupLayout(panel_3DBtns_ChkBox);
         panel_3DBtns_ChkBox.setLayout(panel_3DBtns_ChkBoxLayout);
         panel_3DBtns_ChkBoxLayout.setHorizontalGroup(
             panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSep_ChkBox_Btn, javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(panel_3DBtns_ChkBoxLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(buttonAutoRoi, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnSetBackGround, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(make3Dbutton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(zRecenter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnRecenter3D, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnMeasure3D, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnSetMeasurements, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnDetOverlap, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnReload3DRois, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_3DBtns_ChkBoxLayout.createSequentialGroup()
-                            .addGap(43, 43, 43)
-                            .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(add2D_rad_btn)
-                                .addComponent(add3D_rad_btn)))
-                        .addGroup(panel_3DBtns_ChkBoxLayout.createSequentialGroup()
-                            .addGap(75, 75, 75)
-                            .addComponent(AddOnClick)))
-                    .addComponent(chkBxRectrOnAdding)
-                    .addComponent(jButtonReloadSubsetRois3D, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(btnDel3DRoi, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnOpen3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnSave3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnGenGauInt, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(34, Short.MAX_VALUE))
+                    .addComponent(jSep_ChkBox_Btn, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(panel_3DBtns_ChkBoxLayout.createSequentialGroup()
+                        .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(buttonAutoRoi, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnSetBackGround, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(make3Dbutton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(zRecenter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnRecenter3D, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnMeasure3D, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnSetMeasurements, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnDetOverlap, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnReload3DRois, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_3DBtns_ChkBoxLayout.createSequentialGroup()
+                                    .addGap(43, 43, 43)
+                                    .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(add2D_rad_btn)
+                                        .addComponent(add3D_rad_btn)))
+                                .addGroup(panel_3DBtns_ChkBoxLayout.createSequentialGroup()
+                                    .addGap(40, 40, 40)
+                                    .addComponent(AddOnClick)))
+                            .addComponent(chkBxRectrOnAdding)
+                            .addComponent(jButtonReloadSubsetRois3D, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
+                            .addGroup(panel_3DBtns_ChkBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(btnDel3DRoi, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnOpen3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnSave3DRois, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnGenGauInt, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(btnClearOutside, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         panel_3DBtns_ChkBoxLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btnDetOverlap, btnGenGauInt, btnMeasure3D, btnRecenter3D, btnReload3DRois, btnSetBackGround, btnSetMeasurements, buttonAutoRoi, make3Dbutton, zRecenter});
@@ -1253,15 +1266,17 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                 .addComponent(btnDel3DRoi)
                 .addGap(4, 4, 4)
                 .addComponent(jButtonReloadSubsetRois3D)
+                .addGap(4, 4, 4)
+                .addComponent(btnClearOutside)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSep_ChkBox_Btn, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(AddOnClick)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(add3D_rad_btn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(add2D_rad_btn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
                 .addComponent(chkBxRectrOnAdding)
                 .addContainerGap())
         );
@@ -1313,11 +1328,11 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(panel_3DBtns_ChkBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(scrlPane_3D_RoiLst, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(scrlPane_2D_RoiLst, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(103, 103, 103)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(buttonExit, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2426,9 +2441,11 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                 int a = 0;
                 while((a = fr.read()) != -1){
                     if(a != '\n'){
-                        strBuff += (char) a;
+                        strBuff += (char)a;
                     } else{
                         //System.out.println("strBuff roi name: " + strBuff);
+                        strBuff += " ";
+                        strBuff = strBuff.trim();
                         list3DRois.add(strBuff);
                         strBuff = "";
                     }
@@ -2453,9 +2470,12 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         selFiles = new File[list3DRois.size()];
         File file;
         System.out.println("3Droi list size: " + list3DRois.size());
+        String fileName = "";
+        
         for (int i = 0; i < list3DRois.size(); i++) {
-            String fileName = dir3DRois.getAbsolutePath() + File.separator + list3DRois.get(i);
-            //System.out.println(fileName);
+            fileName = dir3DRois.getAbsolutePath().concat(File.separator) + list3DRois.get(i)+ ".zip";
+                 
+            System.out.println( fileName);
             file = new File(fileName); //check if .zip extension is correct
             selFiles[i] = file;
             }
@@ -2469,6 +2489,56 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         //call load3DRois method to load required subset of 3D ROIs
         this.load3DRois();
     }//GEN-LAST:event_jButtonReloadSubsetRois3DActionPerformed
+
+    private void btnClearOutsideActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearOutsideActionPerformed
+        // TODO add your handling code here:
+        int roiCount;
+        currentImp = WindowManager.getCurrentImage();
+        int maxSlice = this.currentImp.getStackSize();
+        int presentSlice = currentImp.getSlice();
+
+        for (int curSlice = 1; curSlice < maxSlice; curSlice++) {
+            //currentImp.setSlice(curSlice);
+            //Roi[] curSliceRois = new Roi[Rois3D.size()];
+            roiCount = 0;
+            Roi roi2D = null;
+            ShapeRoi combinedRoi = null;
+            if (Rois3D != null && Rois3D.size() > 0) {
+                for (Roi3D tmproi : Rois3D) {
+                    if ((roi2D = tmproi.get2DRoi(curSlice)) != null) {
+                       combinedRoi = (combinedRoi == null ) ? new ShapeRoi(roi2D) : combinedRoi.or(new ShapeRoi(roi2D));
+                       roiCount++;
+                    } 
+                    else
+                            ;//this 3Droi does not have its 2D roi in this slice
+                    
+                }
+                //Make sure Show 3D Roi is off
+                
+                if (roiCount > 0) {
+                    this.currSlice.setRoi(combinedRoi); // Check setting a new ROi in ImageJ framework reomves previous ROis set on te image
+                    ImageProcessor ip  = this.currSlice.getProcessor();
+                
+                    ip.setValue(0.0);
+                    ip.fillOutside(combinedRoi);
+                    
+                    //recenter(currentImp, curSliceRois, curSlice);
+                 //Demonstration for combine ROi and clear outside
+                  /*ShapeRoi combinedRoi = new ShapeRoi(curSliceRois[1]).or(new ShapeRoi(curSliceRois[1]));
+                  //Make sure Show 3D Roi is off
+                  //this.currSlice.setRoi(combinedRoi);
+                  ImageProcessor ip  = this.currSlice.getProcessor();
+                  ip.setValue(0.0);
+                  ip.fillOutside(combinedRoi);
+                  this.currentImp.repaintWindow();*/
+                  
+                }
+            }
+
+        }
+        currentImp.setSlice(presentSlice);
+        this.currentImp.repaintWindow();     
+    }//GEN-LAST:event_btnClearOutsideActionPerformed
 
     private void MvRois(boolean relative, boolean allRois, int xShift, int yShift, int zShift) throws HeadlessException {
         if (relative) {
@@ -2780,6 +2850,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
     private javax.swing.JRadioButton add3D_rad_btn;
     private javax.swing.JButton addto3Dlist;
     private javax.swing.JButton btnClearAll2D;
+    private javax.swing.JButton btnClearOutside;
     private javax.swing.JButton btnDel3DRoi;
     private javax.swing.JButton btnDetOverlap;
     private javax.swing.JButton btnEast;

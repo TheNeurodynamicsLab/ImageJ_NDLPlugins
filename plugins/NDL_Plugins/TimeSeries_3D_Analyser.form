@@ -1125,11 +1125,11 @@
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="panel_3DBtns_ChkBox" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="scrlPane_3D_RoiLst" min="-2" pref="247" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="scrlPane_2D_RoiLst" min="-2" pref="228" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
+                      <Component id="scrlPane_3D_RoiLst" min="-2" pref="247" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+                      <Component id="scrlPane_2D_RoiLst" min="-2" pref="228" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="103" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
@@ -1286,42 +1286,48 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="jSep_ChkBox_Btn" alignment="1" max="32767" attributes="0"/>
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="buttonAutoRoi" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="btnSetBackGround" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="make3Dbutton" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="zRecenter" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="btnRecenter3D" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="btnMeasure3D" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="btnSetMeasurements" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="btnDetOverlap" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Component id="btnReload3DRois" linkSize="1" alignment="0" max="32767" attributes="0"/>
-                      <Group type="103" alignment="0" groupAlignment="0" attributes="0">
-                          <Group type="102" alignment="1" attributes="0">
-                              <EmptySpace min="-2" pref="43" max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="1" attributes="0">
-                                  <Component id="add2D_rad_btn" min="-2" max="-2" attributes="0"/>
-                                  <Component id="add3D_rad_btn" min="-2" max="-2" attributes="0"/>
+                      <Component id="jSep_ChkBox_Btn" alignment="1" max="32767" attributes="0"/>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="buttonAutoRoi" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="btnSetBackGround" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="make3Dbutton" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="zRecenter" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="btnRecenter3D" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="btnMeasure3D" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="btnSetMeasurements" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="btnDetOverlap" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="btnReload3DRois" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              <Group type="103" alignment="0" groupAlignment="0" attributes="0">
+                                  <Group type="102" alignment="1" attributes="0">
+                                      <EmptySpace min="-2" pref="43" max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="1" attributes="0">
+                                          <Component id="add2D_rad_btn" min="-2" max="-2" attributes="0"/>
+                                          <Component id="add3D_rad_btn" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <EmptySpace min="-2" pref="40" max="-2" attributes="0"/>
+                                      <Component id="AddOnClick" min="-2" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
+                              <Component id="chkBxRectrOnAdding" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="jButtonReloadSubsetRois3D" alignment="0" pref="155" max="32767" attributes="0"/>
+                              <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                                  <Component id="btnDel3DRoi" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="btnOpen3DRois" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="btnSave3DRois" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="btnGenGauInt" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                              </Group>
+                              <Component id="btnClearOutside" alignment="0" max="32767" attributes="0"/>
                           </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="75" max="-2" attributes="0"/>
-                              <Component id="AddOnClick" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
-                      <Component id="chkBxRectrOnAdding" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="jButtonReloadSubsetRois3D" alignment="0" min="-2" pref="155" max="-2" attributes="0"/>
-                      <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
-                          <Component id="btnDel3DRoi" alignment="0" max="32767" attributes="0"/>
-                          <Component id="btnOpen3DRois" alignment="0" max="32767" attributes="0"/>
-                          <Component id="btnSave3DRois" alignment="0" max="32767" attributes="0"/>
-                          <Component id="btnGenGauInt" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace pref="34" max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -1356,15 +1362,17 @@
                   <Component id="btnDel3DRoi" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
                   <Component id="jButtonReloadSubsetRois3D" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
+                  <Component id="btnClearOutside" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="jSep_ChkBox_Btn" min="-2" pref="15" max="-2" attributes="0"/>
-                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="AddOnClick" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="add3D_rad_btn" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="add2D_rad_btn" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace pref="20" max="32767" attributes="0"/>
                   <Component id="chkBxRectrOnAdding" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -1512,6 +1520,14 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonReloadSubsetRois3DActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="btnClearOutside">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Clear Outside ROIs"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnClearOutsideActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>
