@@ -2497,7 +2497,22 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         currentImp = WindowManager.getCurrentImage();
         int maxSlice = this.currentImp.getStackSize();
         int presentSlice = currentImp.getSlice();
-
+        boolean clearNoRoiSlices = true ; // Override through static GUI
+        
+        if(clearNoRoiSlices){
+            int result = JOptionPane.showConfirmDialog(null, "The slices with no selecion(ROI) will be cleared. Press OK to confirm");
+            switch (result){
+                case JOptionPane.CANCEL_OPTION:
+                return;
+                case JOptionPane.YES_OPTION:
+                    clearNoRoiSlices = true;
+                    break;
+                case JOptionPane.NO_OPTION:
+                    clearNoRoiSlices = false;
+                    break;
+            }
+        }
+        
         for (int curSlice = 1; curSlice < maxSlice; curSlice++) {
             //currentImp.setSlice(curSlice);
             //Roi[] curSliceRois = new Roi[Rois3D.size()];
@@ -2511,10 +2526,9 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                        roiCount++;
                     } 
                     else
-                            ;//this 3Droi does not have its 2D roi in this slice
+                        ;//this 3Droi does not have its 2D roi in this slice
                     
                 }
-                //Make sure Show 3D Roi is off
                 
                 if (roiCount > 0) {
                     this.currentImp.setSlice(curSlice);
@@ -2524,17 +2538,10 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                 
                     ip.setValue(0.0);
                     ip.fillOutside(allRoisInslice);
-                    
-                    //recenter(currentImp, curSliceRois, curSlice);
-                 //Demonstration for combine ROi and clear outside
-                  /*ShapeRoi combinedRoi = new ShapeRoi(curSliceRois[1]).or(new ShapeRoi(curSliceRois[1]));
-                  //Make sure Show 3D Roi is off
-                  //this.currSlice.setRoi(combinedRoi);
-                  ImageProcessor ip  = this.currSlice.getProcessor();
-                  ip.setValue(0.0);
-                  ip.fillOutside(combinedRoi);
-                  this.currentImp.repaintWindow();*/
-                  
+                                      
+                }else{
+                    if(clearNoRoiSlices)
+                        this.currentImp.getStack().getProcessor(curSlice).fill();
                 }
             }
 
