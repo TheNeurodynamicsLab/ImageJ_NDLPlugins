@@ -2519,7 +2519,8 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                 if (roiCount > 0) {
                     this.currentImp.setSlice(curSlice);
                     this.currentImp.setRoi(allRoisInslice); // Check setting a new ROi in ImageJ framework reomves previous ROis set on te image
-                    ImageProcessor ip  = this.currSlice.getProcessor();
+                    
+                    ImageProcessor ip  = currentImp.getStack().getProcessor(curSlice);
                 
                     ip.setValue(0.0);
                     ip.fillOutside(allRoisInslice);
