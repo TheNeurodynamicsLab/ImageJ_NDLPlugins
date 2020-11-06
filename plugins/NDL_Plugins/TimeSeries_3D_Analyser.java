@@ -2488,6 +2488,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
         this.combinedRoi = new ShapeRoi(new Roi(0, 0, 0, 0));
         //call load3DRois method to load required subset of 3D ROIs
         this.load3DRois();
+        
     }//GEN-LAST:event_jButtonReloadSubsetRois3DActionPerformed
 
     private void btnClearOutsideActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearOutsideActionPerformed
@@ -2501,12 +2502,12 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
             //currentImp.setSlice(curSlice);
             //Roi[] curSliceRois = new Roi[Rois3D.size()];
             roiCount = 0;
-            Roi roi2D = null;
-            ShapeRoi combinedRoi = null;
+            Roi roi2D;
+            ShapeRoi allRoisInslice = null;
             if (Rois3D != null && Rois3D.size() > 0) {
                 for (Roi3D tmproi : Rois3D) {
                     if ((roi2D = tmproi.get2DRoi(curSlice)) != null) {
-                       combinedRoi = (combinedRoi == null ) ? new ShapeRoi(roi2D) : combinedRoi.or(new ShapeRoi(roi2D));
+                       allRoisInslice = (allRoisInslice == null ) ? new ShapeRoi(roi2D) : allRoisInslice.or(new ShapeRoi(roi2D));
                        roiCount++;
                     } 
                     else
@@ -2516,11 +2517,12 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                 //Make sure Show 3D Roi is off
                 
                 if (roiCount > 0) {
-                    this.currSlice.setRoi(combinedRoi); // Check setting a new ROi in ImageJ framework reomves previous ROis set on te image
+                    this.currentImp.setSlice(curSlice);
+                    this.currentImp.setRoi(allRoisInslice); // Check setting a new ROi in ImageJ framework reomves previous ROis set on te image
                     ImageProcessor ip  = this.currSlice.getProcessor();
                 
                     ip.setValue(0.0);
-                    ip.fillOutside(combinedRoi);
+                    ip.fillOutside(allRoisInslice);
                     
                     //recenter(currentImp, curSliceRois, curSlice);
                  //Demonstration for combine ROi and clear outside
@@ -2833,6 +2835,8 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
                     currentImp.setRoi(combinedRoi);
                 }
             }
+        }else{
+            currentImp.setRoi(new OvalRoi(0,0,0,0));
         }
 
     }
