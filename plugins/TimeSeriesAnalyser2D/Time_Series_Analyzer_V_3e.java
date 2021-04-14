@@ -1,6 +1,5 @@
+package TimeSeriesAnalyser2D;
 
-import ProgTools.MultiFileDialog;
-import ProgTools.MultiSelectFrame;
 import java.awt.*;
 import java.io.*;
 import java.awt.event.*;
@@ -12,16 +11,15 @@ import ij.measure.ResultsTable;
 import ij.plugin.PlugIn;
 import ij.plugin.frame.*;
 import java.awt.datatransfer.*;
-import javax.swing.*;
 
 
 
 
 /**
- *
+ *Bug fixes: Get average and Get Mean Pixel Intensity, Resize all requires rehashing.
  * @author balaji
  */
-public class Time_Series_Analyzer_V_3d extends PlugInFrame implements ActionListener, MouseListener, ItemListener,
+public class Time_Series_Analyzer_V_3e extends PlugInFrame implements ActionListener, MouseListener, ItemListener,
 ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,ImageListener{
     Panel panel;
     static Frame Instance;
@@ -137,7 +135,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
           *
           */
          @SuppressWarnings({"static-access", "static-access", "static-access"})
-        public Time_Series_Analyzer_V_3d() {
+        public Time_Series_Analyzer_V_3e() {
         super ("Time Series V3");
         if (RoiManager.getInstance() == null){
             Manager = new RoiManager ();
@@ -174,7 +172,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
             AddOnClick = new Checkbox("Add On Click");
             panel.add(AddOnClick);
             AddOnClick.setState(false);
-            panel.add(persist = new Checkbox("Persist", false));
+           // panel.add(persist = new Checkbox("Persist", false));
            // panel.add(LiveGraph = new Checkbox("Live Graph", false));
             panel.add(UpdateStack = new Checkbox("New thread for measuring", true));
             panel.add(SubStack = new Checkbox("Process substack",false));
@@ -197,8 +195,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
 		if (label==null)
 			return;
 		String command = label;
-		
-               
+	
                 if(command.equals("AutoROIProperties"))
                     SetAutoROIProperties();
                 if(command.equals("Recenter"))
@@ -334,21 +331,24 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
                     int Start_y = offscreenY - (int)(Height/2);
                     AutoROI.setLocation(Start_x, Start_y);                
                     ROICount++;
-                    imp.setRoi(AutoROI);
+                    
                     String name;
                     if (ROICount < 100){
                          name = (ROICount < 10 ) ? Prefix + "00" + ROICount :  Prefix + "0"  + ROICount;       
                     }
                     else{
-                        name = Prefix + ROICount;
+                        name = (ROICount < 100) ? Prefix +"0" : Prefix + ROICount;
                     }
                     ROIList.add(name);
                     Roi temp = (Roi)AutoROI.clone();
                     temp.setName(name);
                     Rois.put(name,temp); 
-                    if(persist.getState()){
-                        showAllROIs();
-                    }
+                    imp.setRoi(temp);
+                    Manager.addRoi(temp);
+                    
+                    //if(persist.getState()){
+                      //  showAllROIs();
+                    //}
                    // if(LiveGraph.getState()){
                       //  getAverage();
                     //}
@@ -547,7 +547,13 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
          */
         public void ResizeROIS(){
             ROIList = Manager.getList();
-            Rois = Manager.getROIs();
+            Roi[] ManagerRois;
+            /*ManagerRois = Manager.getRoisAsArray();
+            for(Roi roi :ManagerRois){
+                ROIList.add(roi.getName());
+                Rois.put(roi.getName(),roi);
+            }*/
+           Rois = Manager.getROIs();
             int indexes[] = ROIList.getSelectedIndexes();
             if(indexes.length == 0)
                 indexes = getAllIndexes(ROIList.getItemCount());
@@ -570,7 +576,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
                 UpDate(tmpRoi,indexes[i]);
             }
             ROIList = Manager.getList();
-            showAllROIs();
+            //showAllROIs();
         }
         /**
          *
