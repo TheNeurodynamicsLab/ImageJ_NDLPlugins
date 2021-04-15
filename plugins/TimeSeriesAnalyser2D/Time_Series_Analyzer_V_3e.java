@@ -576,7 +576,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
                 tmpRoi.setName(CurRoi.getName());
                 UpDate(tmpRoi,indexes[i]);
             }
-            ROIList = Manager.getList();
+            //ROIList = Manager.getList();
             //showAllROIs();
         }
         /**
@@ -695,8 +695,8 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
                             imp.setRoi(CurRoi);
                         }
                         UpDate(CurRoi,indexes[i]);
-                        temp = new ShapeRoi(CurRoi);
-                        all = (i == 0) ? new ShapeRoi(CurRoi) : all.xor(temp);
+                       // temp = new ShapeRoi(CurRoi);
+                        //all = (i == 0) ? new ShapeRoi(CurRoi) : all.xor(temp);
 
                        /* if(!Converge) 
                                 IJ.log(indexes[i] + "\t ROI did not converge" );*/
@@ -1027,6 +1027,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
         String name = ROIList.getItem(OldIndex);
         Rois.remove(name);
         Rois.put(name,NewRoi);
+        Manager.setRoi(NewRoi, OldIndex);
     }
 
    
