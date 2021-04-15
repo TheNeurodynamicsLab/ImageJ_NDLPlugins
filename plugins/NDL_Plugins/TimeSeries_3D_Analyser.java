@@ -2769,6 +2769,7 @@ public class TimeSeries_3D_Analyser extends javax.swing.JFrame implements Runnab
             }
         }
 
+        
     }
 
     @Override

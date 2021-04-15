@@ -17,6 +17,7 @@ import java.awt.datatransfer.*;
 
 /**
  *Bug fixes: Get average and Get Mean Pixel Intensity, Resize all requires rehashing.
+ * Add to manager statement is missing. 
  * @author balaji
  */
 public class Time_Series_Analyzer_V_3e extends PlugInFrame implements ActionListener, MouseListener, ItemListener,
