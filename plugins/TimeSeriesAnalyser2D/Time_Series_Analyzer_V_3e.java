@@ -301,7 +301,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
                 }
                 ROIList = Manager.getList();
                 Rois = Manager.getROIs();
-                showAllROIs();
+                //showAllROIs();
                 }
             
         }
@@ -444,7 +444,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
         /**
          *
          */
-        public void showAllROIs(){
+      /*  public void showAllROIs(){
             int indexes[] = getAllIndexes(ROIList.getItemCount());
             if(indexes.length == 0)
             {
@@ -462,9 +462,9 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
             }
             ImagePlus imp = WindowManager.getCurrentImage();
             imp.setRoi(all);
-        }
+        }*/
 	public void mouseEntered(MouseEvent e) {}
-        // This method is reqd. for the button interface
+        // This method is reqd. for the button interface*/
         /**
          *
          */
@@ -610,7 +610,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
             }
             int CurSlice =  imp.getCurrentSlice();
             recenter(imp,CurSlice);
-            imp.setRoi(all);
+           // imp.setRoi(all);
         }
         /**
          *
@@ -806,7 +806,7 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
                     if(ReCtrMean){
                         recenter(imp,CurSlice+1);
                         imp.setSlice(CurSlice+1);
-                        imp.setRoi(all);
+                       // imp.setRoi(all);
                     }
                    for (int CurIdx = 0; CurIdx < highlimit; CurIdx++){
                         roi = (Roi)Rois.get(ROIList.getItem(indexes[CurIdx]));
@@ -1000,8 +1000,8 @@ ClipboardOwner/**/, PlugIn, KeyListener/* for keyborad shortcut*/,Runnable,Image
                         
                        
                     }
-                     if(persist.getState())
-                            showAllROIs();
+                    // if(persist.getState())
+                          //  showAllROIs();
 
 
                    fileBuff.close();
